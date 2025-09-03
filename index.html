@@ -219,10 +219,25 @@
             width: 100%;
             font-size: 16px;
             transition: transform 0.3s ease;
+            position: relative;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .weight-section {
@@ -315,6 +330,48 @@
             display: block;
         }
 
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .current-weight-display {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .current-weight-display h3 {
+            margin-bottom: 8px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .current-weight-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+        }
+
         @media (max-width: 480px) {
             .greeting h1 {
                 font-size: 28px;
@@ -334,7 +391,7 @@
             <div class="hamburger-line"></div>
         </button>
         <div class="calories-display">
-            Today: <span id="dailyCalories">0</span> cal
+            Today: <span id="dailyCalories">Loading...</span> cal
         </div>
     </div>
 
@@ -357,10 +414,19 @@
                 <h2>How have you been eating?</h2>
             </div>
 
+            <!-- Current Weight Display -->
+            <div class="current-weight-display" id="currentWeightDisplay">
+                <h3>Current Weight</h3>
+                <div class="current-weight-value" id="currentWeightValue">Loading...</div>
+            </div>
+
             <div class="quote-section">
                 <div class="quote-header">Quote of the day</div>
                 <div class="quote-text" id="quoteOfTheDay">Loading inspirational quote...</div>
             </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
 
             <div class="meal-form">
                 <h3 style="margin-bottom: 20px; text-align: center; color: white;">Log Your Meal</h3>
@@ -429,7 +495,10 @@
                     </div>
                 </div>
 
-                <button class="btn-primary" onclick="logMeal()">Log Meal</button>
+                <button class="btn-primary" onclick="logMeal()" id="logMealBtn">
+                    <span class="btn-text">Log Meal</span>
+                    <div class="loading">⏳</div>
+                </button>
             </div>
         </div>
 
@@ -450,7 +519,7 @@
             <div class="weight-history">
                 <h3 style="margin-bottom: 15px;">Weight History</h3>
                 <div id="weightHistoryList">
-                    <!-- Weight history will be loaded here -->
+                    Loading weight history...
                 </div>
             </div>
         </div>
@@ -461,16 +530,22 @@
         <div class="modal-content">
             <span class="close" onclick="closeWeightModal()">&times;</span>
             <h2 style="margin-bottom: 20px;">Add Your Weight</h2>
+            <div class="error-message" id="weightErrorMessage"></div>
             <div class="form-group">
                 <input type="number" id="weightInput" placeholder="Enter weight in KG" step="0.1" min="0">
             </div>
-            <button class="btn-primary" onclick="saveWeight()">Save</button>
+            <button class="btn-primary" onclick="saveWeight()" id="saveWeightBtn">
+                <span class="btn-text">Save</span>
+                <div class="loading">⏳</div>
+            </button>
         </div>
     </div>
 
     <script>
+        // Configuration - REPLACE WITH YOUR ACTUAL GOOGLE APPS SCRIPT URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKY84Za-DGCrX9D2nBM0nIF1RDCzdc_RY_hZfRw0ftGkXcKSeulCklMGz5Nw1oAZG0/exec';
+        
         // Global variables
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxW5UK0xl5nkgOmmGdnkOxoLWz71M0Ny9gSdQ49d_LjdZt_ZZCQuZNW0at6sLsriIJj/exec';
         let selectedFeeling = 0;
         let weightChart;
         let currentWeight = 70; // Default weight
@@ -479,9 +554,75 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadQuoteOfTheDay();
             updateDailyCalories();
+            loadCurrentWeight();
             initializeWeightChart();
             loadWeightHistory();
         });
+
+        // API Functions
+        async function apiCall(action, data = {}) {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        ...data
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        function showError(message, elementId = 'errorMessage') {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message, elementId = 'successMessage') {
+            const successEl = document.getElementById(elementId);
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function showLoading(buttonId, show = true) {
+            const btn = document.getElementById(buttonId);
+            const loading = btn.querySelector('.loading');
+            const text = btn.querySelector('.btn-text');
+            
+            if (show) {
+                btn.disabled = true;
+                loading.style.display = 'block';
+                text.style.opacity = '0.5';
+            } else {
+                btn.disabled = false;
+                loading.style.display = 'none';
+                text.style.opacity = '1';
+            }
+        }
 
         // Sidebar functions
         function toggleSidebar() {
@@ -513,28 +654,33 @@
             document.querySelectorAll('.sidebar-item')[1].classList.add('active');
             closeSidebar();
             if (weightChart) {
-                weightChart.update();
+                loadWeightHistory();
             }
         }
 
         // Quote functions
-       function loadQuoteOfTheDay() {
-    fetch(`${GOOGLE_SCRIPT_URL}?action=getQuote`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('quoteOfTheDay').textContent = data.quote;
-        })
-        .catch(error => {
-            console.error('Error loading quote:', error);
-            // Fallback quotes
-            const fallbackQuotes = [
-                "Your body is your temple. Take care of it.",
-                "Health is not about the weight you lose, but about the life you gain."
-            ];
-            document.getElementById('quoteOfTheDay').textContent = 
-                fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
-        });
-}
+        async function loadQuoteOfTheDay() {
+            try {
+                const result = await apiCall('getQuote');
+                document.getElementById('quoteOfTheDay').textContent = result.quote;
+            } catch (error) {
+                console.error('Failed to load quote:', error);
+                document.getElementById('quoteOfTheDay').textContent = 'Your body is your temple. Take care of it.';
+            }
+        }
+
+        // Current weight display function
+        async function loadCurrentWeight() {
+            try {
+                const result = await apiCall('getCurrentWeight');
+                const weight = result.weight || 70;
+                currentWeight = weight;
+                document.getElementById('currentWeightValue').textContent = weight + ' KG';
+            } catch (error) {
+                console.error('Failed to load current weight:', error);
+                document.getElementById('currentWeightValue').textContent = '70 KG';
+            }
+        }
 
         // Meal logging functions
         function selectFeeling(rating) {
@@ -548,98 +694,77 @@
             });
         }
 
-        function logMeal() {
+        async function logMeal() {
             const hour = document.getElementById('mealHour').value;
             const mealType = document.getElementById('mealType').value;
             const mealDescription = document.getElementById('mealDescription').value;
             const calories = document.getElementById('calories').value;
             
             if (!hour || !mealType || !mealDescription || selectedFeeling === 0) {
-                alert('Please fill in all required fields (Hour, Meal Type, Meal Description, and Feeling rating). Calories are optional.');
+                showError('Please fill in all required fields (Hour, Meal Type, Meal Description, and Feeling rating). Calories are optional.');
                 return;
             }
 
-            const today = new Date();
-            const dateString = today.toLocaleDateString('en-GB');
-            
-            // Here you would send data to Google Sheets
-            const mealData = {
-                date: dateString,
-                hour: hour,
-                mealType: mealType,
-                mealDescription: mealDescription,
-                calories: calories ? parseInt(calories) : 0,
-                feeling: selectedFeeling,
-                weight: currentWeight
-            };
+            showLoading('logMealBtn', true);
 
-            console.log('Meal logged:', mealData);
+            try {
+                const today = new Date();
+                const dateString = today.toLocaleDateString('en-GB');
+                
+                const mealData = {
+                    date: dateString,
+                    hour: hour,
+                    mealType: mealType,
+                    mealDescription: mealDescription,
+                    calories: calories ? parseInt(calories) : 0,
+                    feeling: selectedFeeling
+                };
 
-            // Save to local storage for demo
-            saveMealToLocal(mealData);
+                await apiCall('logMeal', mealData);
 
-            // Reset form
-            document.getElementById('mealHour').value = '';
-            document.getElementById('mealType').value = '';
-            document.getElementById('mealDescription').value = '';
-            document.getElementById('calories').value = '';
-            selectedFeeling = 0;
-            document.querySelectorAll('#feelingRating span').forEach(span => {
-                span.classList.remove('selected');
-            });
+                // Reset form
+                document.getElementById('mealHour').value = '';
+                document.getElementById('mealType').value = '';
+                document.getElementById('mealDescription').value = '';
+                document.getElementById('calories').value = '';
+                selectedFeeling = 0;
+                document.querySelectorAll('#feelingRating span').forEach(span => {
+                    span.classList.remove('selected');
+                });
 
-            updateDailyCalories();
-            alert('Meal logged successfully! 🎉');
+                showSuccess('Meal logged successfully! 🎉 (Weight automatically recorded)');
+                updateDailyCalories();
+
+            } catch (error) {
+                showError('Failed to log meal. Please try again.');
+                console.error('Error logging meal:', error);
+            } finally {
+                showLoading('logMealBtn', false);
+            }
         }
 
-       function saveMealToLocal(meal) {
-    // Save to Google Sheets
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            action: 'logMeal',
-            ...meal
-        })
-    }).then(() => {
-        console.log('Meal saved to Google Sheets');
-    }).catch(error => {
-        console.error('Error saving meal:', error);
-    });
-
-    // Also save locally as backup
-    let meals = JSON.parse(localStorage.getItem('meals') || '[]');
-    meals.push(meal);
-    localStorage.setItem('meals', JSON.stringify(meals));
-}
-
-        function updateDailyCalories() {
-            const today = new Date().toLocaleDateString('en-GB');
-            const meals = JSON.parse(localStorage.getItem('meals') || '[]');
-            const todayMeals = meals.filter(meal => meal.date === today);
-            const totalCalories = todayMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
-            document.getElementById('dailyCalories').textContent = totalCalories;
+        async function updateDailyCalories() {
+            try {
+                const today = new Date().toLocaleDateString('en-GB');
+                const result = await apiCall('getDailyCalories', { date: today });
+                document.getElementById('dailyCalories').textContent = result.calories || 0;
+            } catch (error) {
+                console.error('Failed to update daily calories:', error);
+                document.getElementById('dailyCalories').textContent = '0';
+            }
         }
 
         // Weight tracking functions
-        function initializeWeightChart() {
+        async function initializeWeightChart() {
             const ctx = document.getElementById('weightChart').getContext('2d');
             
-            const sampleWeightData = [
-                { date: '01/09', weight: 72.5 },
-                { date: '02/09', weight: 72.2 },
-                { date: '03/09', weight: 71.8 }
-            ];
-
             weightChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: sampleWeightData.map(d => d.date),
+                    labels: [],
                     datasets: [{
                         label: 'Weight (KG)',
-                        data: sampleWeightData.map(d => d.weight),
+                        data: [],
                         borderColor: '#fff',
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         borderWidth: 3,
@@ -689,6 +814,9 @@
                     }
                 }
             });
+
+            // Load initial weight data
+            loadWeightHistory();
         }
 
         function showWeightModal() {
@@ -698,90 +826,81 @@
         function closeWeightModal() {
             document.getElementById('weightModal').style.display = 'none';
             document.getElementById('weightInput').value = '';
+            document.getElementById('weightErrorMessage').style.display = 'none';
         }
 
-        function saveWeight() {
+        async function saveWeight() {
             const weight = parseFloat(document.getElementById('weightInput').value);
             if (!weight || weight <= 0) {
-                alert('Please enter a valid weight');
+                showError('Please enter a valid weight', 'weightErrorMessage');
                 return;
             }
 
-            const today = new Date();
-            const dateString = today.toLocaleDateString('en-GB');
-            
-            console.log('Weight saved:', {
-                date: dateString,
-                weight: weight
-            });
+            showLoading('saveWeightBtn', true);
 
-            saveWeightToLocal({
-                date: dateString,
-                weight: weight
-            });
+            try {
+                const today = new Date();
+                const dateString = today.toLocaleDateString('en-GB');
+                
+                await apiCall('logWeight', {
+                    date: dateString,
+                    weight: weight
+                });
 
-            currentWeight = weight;
-            updateWeightChart();
-            loadWeightHistory();
-            closeWeightModal();
-            alert('Weight saved successfully! 🎉');
-        }
+                currentWeight = weight;
+                loadWeightHistory();
+                loadCurrentWeight(); // Update the current weight display
+                closeWeightModal();
+                showSuccess('Weight saved successfully! 🎉');
 
-     function saveWeightToLocal(weightEntry) {
-    // Save to Google Sheets
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            action: 'logWeight',
-            ...weightEntry
-        })
-    }).then(() => {
-        console.log('Weight saved to Google Sheets');
-    }).catch(error => {
-        console.error('Error saving weight:', error);
-    });
-
-    // Also save locally as backup
-    let weights = JSON.parse(localStorage.getItem('weights') || '[]');
-    weights = weights.filter(w => w.date !== weightEntry.date);
-    weights.push(weightEntry);
-    weights.sort((a, b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-')));
-    localStorage.setItem('weights', JSON.stringify(weights));
-}
-
-        function updateWeightChart() {
-            const weights = JSON.parse(localStorage.getItem('weights') || '[]');
-            const sortedWeights = weights.sort((a, b) => 
-                new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-'))
-            );
-
-            weightChart.data.labels = sortedWeights.map(w => w.date.substring(0, 5));
-            weightChart.data.datasets[0].data = sortedWeights.map(w => w.weight);
-            weightChart.update();
-        }
-
-        function loadWeightHistory() {
-            const weights = JSON.parse(localStorage.getItem('weights') || '[]');
-            const sortedWeights = weights.sort((a, b) => 
-                new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-'))
-            );
-
-            const historyList = document.getElementById('weightHistoryList');
-            
-            if (sortedWeights.length === 0) {
-                historyList.innerHTML = '<p style="text-align: center; opacity: 0.7;">No weight entries yet</p>';
-                return;
+            } catch (error) {
+                showError('Failed to save weight. Please try again.', 'weightErrorMessage');
+                console.error('Error saving weight:', error);
+            } finally {
+                showLoading('saveWeightBtn', false);
             }
+        }
 
-            historyList.innerHTML = sortedWeights.map(weight => 
-                `<div class="weight-entry">
-                    <span>${weight.date}</span>
-                    <span><strong>${weight.weight} KG</strong></span>
-                </div>`
-            ).join('');
+        async function loadWeightHistory() {
+            try {
+                const result = await apiCall('getWeights');
+                const weights = result.weights || [];
+
+                // Update chart
+                if (weightChart) {
+                    const sortedWeights = weights.sort((a, b) => 
+                        new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-'))
+                    );
+
+                    weightChart.data.labels = sortedWeights.map(w => w.date.substring(0, 5));
+                    weightChart.data.datasets[0].data = sortedWeights.map(w => w.weight);
+                    weightChart.update();
+                }
+
+                // Update history list
+                const historyList = document.getElementById('weightHistoryList');
+                
+                if (weights.length === 0) {
+                    historyList.innerHTML = '<p style="text-align: center; opacity: 0.7;">No weight entries yet</p>';
+                    return;
+                }
+
+                const sortedWeights = weights.sort((a, b) => 
+                    new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-'))
+                );
+
+                historyList.innerHTML = sortedWeights.map(weight => 
+                    `<div class="weight-entry">
+                        <span>${weight.date}</span>
+                        <span><strong>${weight.weight} KG</strong></span>
+                    </div>`
+                ).join('');
+
+            } catch (error) {
+                console.error('Failed to load weight history:', error);
+                document.getElementById('weightHistoryList').innerHTML = 
+                    '<p style="text-align: center; opacity: 0.7; color: #ff6b6b;">Failed to load weight history</p>';
+            }
         }
 
         // Handle clicks outside modal
@@ -791,6 +910,13 @@
                 closeWeightModal();
             }
         }
-    </script>
+
+        // Show warning if Apps Script URL is not configured
+        if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+            setTimeout(() => {
+                showError('Please configure your Google Apps Script URL in the JavaScript code to connect to Google Sheets.');
+            }, 1000);
+        }
+    </script
 </body>
 </html>
