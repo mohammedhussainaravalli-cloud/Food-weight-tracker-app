@@ -1,3 +1,4 @@
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxW5UK0xl5nkgOmmGdnkOxoLWz71M0Ny9gSdQ49d_LjdZt_ZZCQuZNW0at6sLsriIJj/exec';
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -517,18 +518,23 @@
         }
 
         // Quote functions
-        function loadQuoteOfTheDay() {
-            const quotes = [
+       function loadQuoteOfTheDay() {
+    fetch(`${GOOGLE_SCRIPT_URL}?action=getQuote`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('quoteOfTheDay').textContent = data.quote;
+        })
+        .catch(error => {
+            console.error('Error loading quote:', error);
+            // Fallback quotes
+            const fallbackQuotes = [
                 "Your body is your temple. Take care of it.",
-                "Health is not about the weight you lose, but about the life you gain.",
-                "Every healthy choice you make is a step toward a better you.",
-                "Progress, not perfection, is the goal.",
-                "You are stronger than your cravings."
+                "Health is not about the weight you lose, but about the life you gain."
             ];
-            
-            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-            document.getElementById('quoteOfTheDay').textContent = randomQuote;
-        }
+            document.getElementById('quoteOfTheDay').textContent = 
+                fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+        });
+}
 
         // Meal logging functions
         function selectFeeling(rating) {
@@ -586,11 +592,28 @@
             alert('Meal logged successfully! 🎉');
         }
 
-        function saveMealToLocal(meal) {
-            let meals = JSON.parse(localStorage.getItem('meals') || '[]');
-            meals.push(meal);
-            localStorage.setItem('meals', JSON.stringify(meals));
-        }
+       function saveMealToLocal(meal) {
+    // Save to Google Sheets
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'logMeal',
+            ...meal
+        })
+    }).then(() => {
+        console.log('Meal saved to Google Sheets');
+    }).catch(error => {
+        console.error('Error saving meal:', error);
+    });
+
+    // Also save locally as backup
+    let meals = JSON.parse(localStorage.getItem('meals') || '[]');
+    meals.push(meal);
+    localStorage.setItem('meals', JSON.stringify(meals));
+}
 
         function updateDailyCalories() {
             const today = new Date().toLocaleDateString('en-GB');
@@ -704,15 +727,30 @@
             alert('Weight saved successfully! 🎉');
         }
 
-        function saveWeightToLocal(weightEntry) {
-            let weights = JSON.parse(localStorage.getItem('weights') || '[]');
-            
-            weights = weights.filter(w => w.date !== weightEntry.date);
-            weights.push(weightEntry);
-            weights.sort((a, b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-')));
-            
-            localStorage.setItem('weights', JSON.stringify(weights));
-        }
+     function saveWeightToLocal(weightEntry) {
+    // Save to Google Sheets
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'logWeight',
+            ...weightEntry
+        })
+    }).then(() => {
+        console.log('Weight saved to Google Sheets');
+    }).catch(error => {
+        console.error('Error saving weight:', error);
+    });
+
+    // Also save locally as backup
+    let weights = JSON.parse(localStorage.getItem('weights') || '[]');
+    weights = weights.filter(w => w.date !== weightEntry.date);
+    weights.push(weightEntry);
+    weights.sort((a, b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-')));
+    localStorage.setItem('weights', JSON.stringify(weights));
+}
 
         function updateWeightChart() {
             const weights = JSON.parse(localStorage.getItem('weights') || '[]');
