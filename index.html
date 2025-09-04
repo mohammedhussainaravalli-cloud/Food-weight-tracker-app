@@ -543,7 +543,7 @@
 
     <script>
         // Configuration - REPLACE WITH YOUR ACTUAL GOOGLE APPS SCRIPT URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRHU94I_C8VP1ux4A5r9imXbn_yIB4rTqe8DE8smJn9M1oP_eeEDhuvgblwI9vqgWz/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkuDYU8nKJL4apgDLCDy7dR7ug3btUzHjf1sKqW79DwkxHZAdBriDZKtNY08-S9U_h/exec';
         
         // Global variables
         let selectedFeeling = 0;
@@ -912,11 +912,7 @@
         }
 
         // Show warning if Apps Script URL is not configured
-        if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-            setTimeout(() => {
-                showError('Please configure your Google Apps Script URL in the JavaScript code to connect to Google Sheets.');
-            }, 1000);
-        }
-    </script
+        console.log('Apps Script URL configured:', APPS_SCRIPT_URL);
+    </script>
 </body>
 </html>
