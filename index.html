@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weight Tracker - Mohammed</title>
+    <title>MH's Weight Loss App</title>
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MH's Weight Loss App">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -17,12 +21,13 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
+            overflow-x: hidden;
         }
 
         .header {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            padding: 15px 20px;
+            padding: 10px 15px;
             position: fixed;
             top: 0;
             left: 0;
@@ -37,17 +42,17 @@
             background: none;
             border: none;
             cursor: pointer;
-            padding: 10px;
+            padding: 8px;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
         }
 
         .hamburger-line {
-            width: 25px;
-            height: 3px;
+            width: 22px;
+            height: 2px;
             background-color: white;
             border-radius: 2px;
             transition: 0.3s;
@@ -55,16 +60,22 @@
 
         .calories-display {
             background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 50%;
         }
 
         .sidebar {
             position: fixed;
             top: 0;
-            left: -250px;
-            width: 250px;
+            left: -80vw;
+            width: 80vw;
+            max-width: 250px;
             height: 100vh;
             background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(20px);
@@ -78,14 +89,15 @@
         }
 
         .sidebar-item {
-            padding: 20px;
+            padding: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: background 0.3s ease;
             color: white;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 14px;
         }
 
         .sidebar-item:hover, .sidebar-item.active {
@@ -93,47 +105,62 @@
         }
 
         .main-content {
-            margin-top: 80px;
-            padding: 20px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
+            margin-top: 70px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .greeting {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .greeting h1 {
-            font-size: 32px;
+            font-size: 28px;
             font-style: italic;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             background: linear-gradient(45deg, #fff, #f0f0f0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .greeting h2 {
-            font-size: 18px;
+            font-size: 16px;
             opacity: 0.8;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
-        .quote-section {
+        .quote-section, .current-weight-display, .meal-form, .todays-meals-section {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .current-weight-display {
+            text-align: center;
+        }
+
+        .current-weight-display h3 {
+            margin-bottom: 6px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .current-weight-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+        }
+
         .quote-header {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: white;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-align: left;
         }
 
@@ -141,37 +168,88 @@
             font-style: italic;
             text-align: center;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.4;
         }
 
-        .meal-form {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+        .section-header {
+            font-size: 15px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .meals-list {
+            color: white;
+        }
+
+        .meal-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .meal-details {
+            flex: 1;
+        }
+
+        .meal-time {
+            font-weight: bold;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .meal-type {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .meal-description {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .meal-calories {
+            background: rgba(102, 126, 234, 0.3);
+            padding: 3px 6px;
             border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .no-meals {
+            text-align: center;
+            opacity: 0.7;
+            font-style: italic;
+            padding: 15px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: bold;
             color: white;
         }
 
         .form-group select, .form-group input[type="text"], .form-group input[type="number"] {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
-            font-size: 16px;
+            font-size: 14px;
             border: 2px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -193,11 +271,11 @@
         .emoji-rating {
             display: flex;
             justify-content: space-around;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .emoji-rating span {
-            font-size: 28px;
+            font-size: 24px;
             cursor: pointer;
             opacity: 0.5;
             transition: opacity 0.3s ease, transform 0.3s ease;
@@ -211,13 +289,13 @@
         .btn-primary {
             background: linear-gradient(45deg, #667eea, #764ba2);
             border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
+            padding: 12px 25px;
+            border-radius: 20px;
             color: white;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            font-size: 16px;
+            font-size: 14px;
             transition: transform 0.3s ease;
             position: relative;
         }
@@ -249,39 +327,46 @@
         }
 
         .chart-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            position: relative;
+            width: 100%;
+            height: auto;
+            min-height: 180px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        #weightChart {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
         }
 
         .weight-input-btn {
             background: linear-gradient(45deg, #667eea, #764ba2);
             border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
+            padding: 12px 25px;
+            border-radius: 20px;
             color: white;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            font-size: 16px;
-            margin-bottom: 20px;
+            font-size: 14px;
+            margin-bottom: 15px;
         }
 
         .weight-history {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            max-height: 300px;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
         .weight-entry {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -291,28 +376,29 @@
             z-index: 1002;
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-color: rgba(0, 0, 0, 0.5);
         }
 
         .modal-content {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 15% auto;
-            padding: 30px;
-            border-radius: 15px;
-            width: 80%;
-            max-width: 400px;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
             text-align: center;
+            box-sizing: border-box;
         }
 
         .close {
             color: white;
             float: right;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: -20px;
+            margin-top: -15px;
         }
 
         .overlay {
@@ -320,8 +406,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
@@ -330,55 +416,74 @@
             display: block;
         }
 
-        .error-message {
+        .error-message, .success-message {
             background: rgba(255, 0, 0, 0.2);
             border: 1px solid rgba(255, 0, 0, 0.5);
             color: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
             display: none;
         }
 
         .success-message {
             background: rgba(0, 255, 0, 0.2);
             border: 1px solid rgba(0, 255, 0, 0.5);
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
-            display: none;
         }
 
-        .current-weight-display {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .current-weight-display h3 {
-            margin-bottom: 8px;
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .current-weight-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        @media (max-width: 480px) {
-            .greeting h1 {
-                font-size: 28px;
-            }
-            
+        @media (max-width: 600px) {
             .main-content {
+                padding: 8px;
+            }
+            .greeting h1 {
+                font-size: 24px;
+            }
+            .greeting h2 {
+                font-size: 14px;
+            }
+            .section-header, .quote-header {
+                font-size: 14px;
+            }
+            .form-group input, .form-group select {
+                padding: 8px;
+                font-size: 13px;
+            }
+            .btn-primary, .weight-input-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+            .chart-container {
+                min-height: 150px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .header {
+                padding: 8px 10px;
+            }
+            .calories-display {
+                font-size: 12px;
+                padding: 5px 10px;
+                max-width: 40%;
+            }
+            .hamburger-menu {
+                width: 24px;
+                height: 24px;
+            }
+            .hamburger-line {
+                width: 18px;
+                height: 2px;
+            }
+            .modal-content {
+                margin: 5% auto;
                 padding: 15px;
+                width: 95%;
+            }
+            .greeting h1 {
+                font-size: 20px;
+            }
+            .greeting h2 {
+                font-size: 12px;
             }
         }
     </style>
@@ -398,24 +503,18 @@
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-item active" onclick="showHome()">
-            🏠 Home
-        </div>
-        <div class="sidebar-item" onclick="showWeightTracking()">
-            📊 Weight Tracking
-        </div>
+        <div class="sidebar-item active" onclick="showHome()">🏠 Home</div>
+        <div class="sidebar-item" onclick="showWeightTracking()">📊 Weight Tracking</div>
     </div>
 
     <div class="main-content">
-        <!-- Home Section -->
         <div id="homeSection">
             <div class="greeting">
                 <h1>Hello, Mohammed!</h1>
                 <h2>How have you been eating?</h2>
             </div>
 
-            <!-- Current Weight Display -->
-            <div class="current-weight-display" id="currentWeightDisplay">
+            <div class="current-weight-display">
                 <h3>Current Weight</h3>
                 <div class="current-weight-value" id="currentWeightValue">Loading...</div>
             </div>
@@ -429,8 +528,7 @@
             <div class="success-message" id="successMessage"></div>
 
             <div class="meal-form">
-                <h3 style="margin-bottom: 20px; text-align: center; color: white;">Log Your Meal</h3>
-                
+                <h3 style="margin-bottom: 15px; text-align: center; color: white;">Log Your Meal</h3>
                 <div class="form-group">
                     <label>Hour of the day:</label>
                     <select id="mealHour">
@@ -500,36 +598,35 @@
                     <div class="loading">⏳</div>
                 </button>
             </div>
+
+            <div class="todays-meals-section">
+                <div class="section-header">What I've eaten today</div>
+                <div id="todayMealsList" class="meals-list">Loading today's meals...</div>
+            </div>
         </div>
 
-        <!-- Weight Tracking Section -->
         <div id="weightSection" class="weight-section">
-            <div style="text-align: center; margin-bottom: 30px;">
+            <div style="text-align: center; margin-bottom: 25px;">
                 <h1>Weight Tracking</h1>
             </div>
 
             <div class="chart-container">
-                <canvas id="weightChart" width="400" height="200"></canvas>
+                <canvas id="weightChart"></canvas>
             </div>
 
-            <button class="weight-input-btn" onclick="showWeightModal()">
-                Add Today's Weight
-            </button>
+            <button class="weight-input-btn" onclick="showWeightModal()">Add Today's Weight</button>
 
             <div class="weight-history">
-                <h3 style="margin-bottom: 15px;">Weight History</h3>
-                <div id="weightHistoryList">
-                    Loading weight history...
-                </div>
+                <h3 style="margin-bottom: 10px;">Weight History</h3>
+                <div id="weightHistoryList">Loading weight history...</div>
             </div>
         </div>
     </div>
 
-    <!-- Weight Input Modal -->
     <div id="weightModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeWeightModal()">&times;</span>
-            <h2 style="margin-bottom: 20px;">Add Your Weight</h2>
+            <h2 style="margin-bottom: 15px;">Add Your Weight</h2>
             <div class="error-message" id="weightErrorMessage"></div>
             <div class="form-group">
                 <input type="number" id="weightInput" placeholder="Enter weight in KG" step="0.1" min="0">
@@ -542,101 +639,291 @@
     </div>
 
     <script>
-        // Configuration - REPLACE WITH YOUR ACTUAL GOOGLE APPS SCRIPT URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzbbWQBdwFJvlF6iIzWyrwFRG-Vm-E0k1KQyO9cP1llYHZYviukJA2ye8KMnMUM36f/exec';
-        
-        // Global variables
-        let selectedFeeling = 0;
-        let weightChart;
-        let currentWeight = 70; // Default weight
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwf9cglmDOflb87RJwbtyHQCiU9r7-esfw9HqnWXgZ-U4PtSJdSZ-blek187SjPBcY/exec'; // Replace with your deployed Apps Script URL
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            loadQuoteOfTheDay();
-            updateDailyCalories();
-            loadCurrentWeight();
-            initializeWeightChart();
-            loadWeightHistory();
+        let selectedFeeling = null;
+        let weightChart = null;
+
+        const quotes = [
+            "The groundwork for all happiness is good health.",
+            "Take care of your body. It's the only place you have to live.",
+            "Health is not about the weight you lose, but about the life you gain.",
+            "Your body can do it. It's your mind you need to convince.",
+            "Progress, not perfection.",
+            "Small changes lead to big results.",
+            "Believe in yourself and all that you are.",
+            "Every meal is a fresh start.",
+            "You are stronger than your excuses.",
+            "Healthy eating is a form of self-respect."
+        ];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadQuote();
+            await updateCaloriesDisplay();
+            await updateCurrentWeight();
+            await displayTodaysMeals();
         });
 
-        // API Functions
-        async function apiCall(action, data = {}) {
+        async function apiCall(action, params = {}) {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        action: action,
-                        ...data
-                    })
+                    mode: 'cors', // Enable CORS mode
+                    body: JSON.stringify({ action, ...params })
                 });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const result = await response.json();
-                
-                if (result.error) {
-                    throw new Error(result.error);
+                const data = await response.json();
+                if (data.status === 'error') {
+                    throw new Error(data.message);
                 }
-                
-                return result;
+                return data.result;
             } catch (error) {
-                console.error('API call failed:', error);
+                console.error('API error:', error);
                 throw error;
             }
         }
 
-        function showError(message, elementId = 'errorMessage') {
-            const errorEl = document.getElementById(elementId);
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 5000);
-        }
-
-        function showSuccess(message, elementId = 'successMessage') {
-            const successEl = document.getElementById(elementId);
-            successEl.textContent = message;
-            successEl.style.display = 'block';
-            setTimeout(() => {
-                successEl.style.display = 'none';
-            }, 3000);
-        }
-
-        function showLoading(buttonId, show = true) {
-            const btn = document.getElementById(buttonId);
-            const loading = btn.querySelector('.loading');
-            const text = btn.querySelector('.btn-text');
-            
-            if (show) {
-                btn.disabled = true;
-                loading.style.display = 'block';
-                text.style.opacity = '0.5';
-            } else {
-                btn.disabled = false;
-                loading.style.display = 'none';
-                text.style.opacity = '1';
+        async function loadQuote() {
+            try {
+                const quote = await apiCall('serverGetQuote');
+                document.getElementById('quoteOfTheDay').textContent = quote;
+            } catch (error) {
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                document.getElementById('quoteOfTheDay').textContent = randomQuote;
             }
         }
 
-        // Sidebar functions
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('open');
+        function selectFeeling(rating) {
+            selectedFeeling = rating;
+            document.querySelectorAll('#feelingRating span').forEach((span, index) => {
+                if (index + 1 === rating) {
+                    span.classList.add('selected');
+                } else {
+                    span.classList.remove('selected');
+                }
+            });
         }
 
-        function closeSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
+        async function logMeal() {
+            const hour = document.getElementById('mealHour').value;
+            const type = document.getElementById('mealType').value;
+            const description = document.getElementById('mealDescription').value;
+            const calories = document.getElementById('calories').value;
+
+            if (!hour || !type || !description) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            if (!selectedFeeling) {
+                showError('Please select how you felt');
+                return;
+            }
+
+            setButtonLoading('logMealBtn', true);
+
+            try {
+                await apiCall('serverLogMeal', {
+                    hour: parseInt(hour),
+                    type,
+                    description,
+                    calories: calories ? parseInt(calories) : null,
+                    feeling: selectedFeeling
+                });
+
+                clearMealForm();
+                await displayTodaysMeals();
+                await updateCaloriesDisplay();
+                showSuccess('Meal logged successfully!');
+            } catch (error) {
+                showError('Failed to log meal: ' + error.message);
+            } finally {
+                setButtonLoading('logMealBtn', false);
+            }
+        }
+
+        function clearMealForm() {
+            document.getElementById('mealHour').value = '';
+            document.getElementById('mealType').value = '';
+            document.getElementById('mealDescription').value = '';
+            document.getElementById('calories').value = '';
+            selectedFeeling = null;
+            document.querySelectorAll('#feelingRating span').forEach(span => span.classList.remove('selected'));
+        }
+
+        async function displayTodaysMeals() {
+            try {
+                const meals = await apiCall('serverGetTodayMeals');
+                const mealsList = document.getElementById('todayMealsList');
+
+                if (meals.length === 0) {
+                    mealsList.innerHTML = '<div class="no-meals">No meals logged today</div>';
+                    return;
+                }
+
+                meals.sort((a, b) => a.hour - b.hour);
+                let mealsHtml = '';
+                meals.forEach(meal => {
+                    const feelingEmoji = ['😞', '😕', '😐', '😊', '😍'][meal.feeling - 1];
+                    mealsHtml += `
+                        <div class="meal-item">
+                            <div class="meal-details">
+                                <div class="meal-time">${meal.hour}:00 ${feelingEmoji}</div>
+                                <div class="meal-type">${meal.type}</div>
+                                <div class="meal-description">${meal.description}</div>
+                            </div>
+                            <div class="meal-calories">${meal.calories || 'N/A'} cal</div>
+                        </div>
+                    `;
+                });
+                mealsList.innerHTML = mealsHtml;
+            } catch (error) {
+                mealsList.innerHTML = '<div class="no-meals">Error loading meals</div>';
+            }
+        }
+
+        async function updateCaloriesDisplay() {
+            try {
+                const calories = await apiCall('serverGetDailyCalories');
+                document.getElementById('dailyCalories').textContent = calories;
+            } catch (error) {
+                document.getElementById('dailyCalories').textContent = '0';
+            }
+        }
+
+        function showWeightModal() {
+            document.getElementById('weightModal').style.display = 'block';
+        }
+
+        function closeWeightModal() {
+            document.getElementById('weightModal').style.display = 'none';
+            document.getElementById('weightInput').value = '';
+            hideError('weightErrorMessage');
+        }
+
+        async function saveWeight() {
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            if (!weight || weight <= 0) {
+                showError('Please enter a valid weight', 'weightErrorMessage');
+                return;
+            }
+
+            setButtonLoading('saveWeightBtn', true);
+
+            try {
+                await apiCall('serverLogWeight', { weight });
+                await updateCurrentWeight();
+                await displayWeightHistory();
+                await updateWeightChart();
+                showSuccess('Weight saved successfully!');
+            } catch (error) {
+                showError('Failed to save weight: ' + error.message, 'weightErrorMessage');
+            } finally {
+                setButtonLoading('saveWeightBtn', false);
+                closeWeightModal();
+            }
+        }
+
+        async function updateCurrentWeight() {
+            try {
+                const weight = await apiCall('serverGetCurrentWeight');
+                document.getElementById('currentWeightValue').textContent = `${weight} kg`;
+            } catch (error) {
+                document.getElementById('currentWeightValue').textContent = 'No data';
+            }
+        }
+
+        async function displayWeightHistory() {
+            try {
+                const weights = await apiCall('serverGetWeights');
+                const historyList = document.getElementById('weightHistoryList');
+                if (weights.length === 0) {
+                    historyList.innerHTML = '<div class="no-meals">No weight data available</div>';
+                    return;
+                }
+
+                let historyHtml = '';
+                weights.forEach(weight => {
+                    const date = new Date(weight.timestamp).toLocaleDateString();
+                    historyHtml += `
+                        <div class="weight-entry">
+                            <span>${date}</span>
+                            <span>${weight.weight} kg</span>
+                        </div>
+                    `;
+                });
+                historyList.innerHTML = historyHtml;
+            } catch (error) {
+                historyList.innerHTML = '<div class="no-meals">Error loading weight history</div>';
+            }
+        }
+
+        function initWeightChart() {
+            if (weightChart) {
+                updateWeightChart();
+                return;
+            }
+
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: [],
+                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function updateWeightChart() {
+            if (!weightChart) return;
+            try {
+                const weights = await apiCall('serverGetWeights');
+                const sortedWeights = weights.sort((a, b) => a.timestamp - b.timestamp);
+                const labels = sortedWeights.map(w => {
+                    const date = new Date(w.timestamp);
+                    return `${date.getMonth() + 1}/${date.getDate()}`;
+                });
+                const data = sortedWeights.map(w => w.weight);
+                weightChart.data.labels = labels;
+                weightChart.data.datasets[0].data = data;
+                weightChart.update();
+            } catch (error) {
+                console.error('Error updating chart:', error);
+            }
         }
 
         function showHome() {
@@ -652,267 +939,76 @@
             document.getElementById('weightSection').style.display = 'block';
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
             document.querySelectorAll('.sidebar-item')[1].classList.add('active');
+            initWeightChart();
+            displayWeightHistory();
             closeSidebar();
-            if (weightChart) {
-                loadWeightHistory();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        function showError(message, elementId = 'errorMessage') {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => hideError(elementId), 5000);
+        }
+
+        function hideError(elementId = 'errorMessage') {
+            const errorElement = document.getElementById(elementId);
+            errorElement.style.display = 'none';
+        }
+
+        function showSuccess(message, elementId = 'successMessage') {
+            const successElement = document.getElementById(elementId);
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            setTimeout(() => successElement.style.display = 'none', 3000);
+        }
+
+        function setButtonLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const btnText = button.querySelector('.btn-text');
+            const loading = button.querySelector('.loading');
+            if (isLoading) {
+                button.disabled = true;
+                btnText.style.opacity = '0';
+                loading.style.display = 'block';
+            } else {
+                button.disabled = false;
+                btnText.style.opacity = '1';
+                loading.style.display = 'none';
             }
         }
 
-        // Quote functions
-        async function loadQuoteOfTheDay() {
-            try {
-                const result = await apiCall('getQuote');
-                document.getElementById('quoteOfTheDay').textContent = result.quote;
-            } catch (error) {
-                console.error('Failed to load quote:', error);
-                document.getElementById('quoteOfTheDay').textContent = 'Your body is your temple. Take care of it.';
-            }
-        }
-
-        // Current weight display function
-        async function loadCurrentWeight() {
-            try {
-                const result = await apiCall('getCurrentWeight');
-                const weight = result.weight || 70;
-                currentWeight = weight;
-                document.getElementById('currentWeightValue').textContent = weight + ' KG';
-            } catch (error) {
-                console.error('Failed to load current weight:', error);
-                document.getElementById('currentWeightValue').textContent = '70 KG';
-            }
-        }
-
-        // Meal logging functions
-        function selectFeeling(rating) {
-            selectedFeeling = rating;
-            document.querySelectorAll('#feelingRating span').forEach((span, index) => {
-                if (index + 1 <= rating) {
-                    span.classList.add('selected');
-                } else {
-                    span.classList.remove('selected');
-                }
-            });
-        }
-
-        async function logMeal() {
-            const hour = document.getElementById('mealHour').value;
-            const mealType = document.getElementById('mealType').value;
-            const mealDescription = document.getElementById('mealDescription').value;
-            const calories = document.getElementById('calories').value;
-            
-            if (!hour || !mealType || !mealDescription || selectedFeeling === 0) {
-                showError('Please fill in all required fields (Hour, Meal Type, Meal Description, and Feeling rating). Calories are optional.');
-                return;
-            }
-
-            showLoading('logMealBtn', true);
-
-            try {
-                const today = new Date();
-                const dateString = today.toLocaleDateString('en-GB');
-                
-                const mealData = {
-                    date: dateString,
-                    hour: hour,
-                    mealType: mealType,
-                    mealDescription: mealDescription,
-                    calories: calories ? parseInt(calories) : 0,
-                    feeling: selectedFeeling
-                };
-
-                await apiCall('logMeal', mealData);
-
-                // Reset form
-                document.getElementById('mealHour').value = '';
-                document.getElementById('mealType').value = '';
-                document.getElementById('mealDescription').value = '';
-                document.getElementById('calories').value = '';
-                selectedFeeling = 0;
-                document.querySelectorAll('#feelingRating span').forEach(span => {
-                    span.classList.remove('selected');
-                });
-
-                showSuccess('Meal logged successfully! 🎉 (Weight automatically recorded)');
-                updateDailyCalories();
-
-            } catch (error) {
-                showError('Failed to log meal. Please try again.');
-                console.error('Error logging meal:', error);
-            } finally {
-                showLoading('logMealBtn', false);
-            }
-        }
-
-        async function updateDailyCalories() {
-            try {
-                const today = new Date().toLocaleDateString('en-GB');
-                const result = await apiCall('getDailyCalories', { date: today });
-                document.getElementById('dailyCalories').textContent = result.calories || 0;
-            } catch (error) {
-                console.error('Failed to update daily calories:', error);
-                document.getElementById('dailyCalories').textContent = '0';
-            }
-        }
-
-        // Weight tracking functions
-        async function initializeWeightChart() {
-            const ctx = document.getElementById('weightChart').getContext('2d');
-            
-            weightChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Weight (KG)',
-                        data: [],
-                        borderColor: '#fff',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#667eea',
-                        pointBorderWidth: 2,
-                        pointRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'white'
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: 'white'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                color: 'white'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        }
-                    },
-                    onClick: function(event, elements) {
-                        if (elements.length > 0) {
-                            const datasetIndex = elements[0].datasetIndex;
-                            const dataIndex = elements[0].index;
-                            const dataPoint = this.data.datasets[datasetIndex].data[dataIndex];
-                            const label = this.data.labels[dataIndex];
-                            alert(`Weight on ${label}: ${dataPoint} KG`);
-                        }
-                    }
-                }
-            });
-
-            // Load initial weight data
-            loadWeightHistory();
-        }
-
-        function showWeightModal() {
-            document.getElementById('weightModal').style.display = 'block';
-        }
-
-        function closeWeightModal() {
-            document.getElementById('weightModal').style.display = 'none';
-            document.getElementById('weightInput').value = '';
-            document.getElementById('weightErrorMessage').style.display = 'none';
-        }
-
-        async function saveWeight() {
-            const weight = parseFloat(document.getElementById('weightInput').value);
-            if (!weight || weight <= 0) {
-                showError('Please enter a valid weight', 'weightErrorMessage');
-                return;
-            }
-
-            showLoading('saveWeightBtn', true);
-
-            try {
-                const today = new Date();
-                const dateString = today.toLocaleDateString('en-GB');
-                
-                await apiCall('logWeight', {
-                    date: dateString,
-                    weight: weight
-                });
-
-                currentWeight = weight;
-                loadWeightHistory();
-                loadCurrentWeight(); // Update the current weight display
-                closeWeightModal();
-                showSuccess('Weight saved successfully! 🎉');
-
-            } catch (error) {
-                showError('Failed to save weight. Please try again.', 'weightErrorMessage');
-                console.error('Error saving weight:', error);
-            } finally {
-                showLoading('saveWeightBtn', false);
-            }
-        }
-
-        async function loadWeightHistory() {
-            try {
-                const result = await apiCall('getWeights');
-                const weights = result.weights || [];
-
-                // Update chart
-                if (weightChart) {
-                    const sortedWeights = weights.sort((a, b) => 
-                        new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-'))
-                    );
-
-                    weightChart.data.labels = sortedWeights.map(w => w.date.substring(0, 5));
-                    weightChart.data.datasets[0].data = sortedWeights.map(w => w.weight);
-                    weightChart.update();
-                }
-
-                // Update history list
-                const historyList = document.getElementById('weightHistoryList');
-                
-                if (weights.length === 0) {
-                    historyList.innerHTML = '<p style="text-align: center; opacity: 0.7;">No weight entries yet</p>';
-                    return;
-                }
-
-                const sortedWeights = weights.sort((a, b) => 
-                    new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-'))
-                );
-
-                historyList.innerHTML = sortedWeights.map(weight => 
-                    `<div class="weight-entry">
-                        <span>${weight.date}</span>
-                        <span><strong>${weight.weight} KG</strong></span>
-                    </div>`
-                ).join('');
-
-            } catch (error) {
-                console.error('Failed to load weight history:', error);
-                document.getElementById('weightHistoryList').innerHTML = 
-                    '<p style="text-align: center; opacity: 0.7; color: #ff6b6b;">Failed to load weight history</p>';
-            }
-        }
-
-        // Handle clicks outside modal
         window.onclick = function(event) {
             const modal = document.getElementById('weightModal');
             if (event.target === modal) {
                 closeWeightModal();
             }
+        };
+
+        function setCurrentHour() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const hourSelect = document.getElementById('mealHour');
+            if (!hourSelect.value) {
+                hourSelect.value = currentHour.toString();
+            }
         }
 
-        // Show warning if Apps Script URL is not configured
-        console.log('Apps Script URL configured:', APPS_SCRIPT_URL);
+        document.getElementById('mealHour').addEventListener('focus', setCurrentHour);
     </script>
 </body>
 </html>
