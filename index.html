@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="MH's Weight Loss App">
-    <script src="https://apis.google.com/js/api.js"></script> <!-- Google API Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -640,439 +639,339 @@
     </div>
 
     <script>
-       const CLIENT_ID = '286344757695-g65hshgegne8hp6fgqpbtq9uf05550b2.apps.googleusercontent.com'; // Replace with your OAuth Client ID
-        const API_KEY = 'AIzaSyCAcN8DXSRqBv6TDEYikP9O8Eb_C_cFNfw'; // Replace with your API Key
-        const SHEET_ID = '10OQj4RyAMYYowEiNXLlN0B6zgUOItZx6RvS9eAC34HY'; // Replace with your Google Sheet ID
-        const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
-        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmHDDkaJFyZ_naR8y0mT-ZfZJhhhtunl5lTMsdsb39mJoYlOq36-N8MHCq-y3tv_qN/exec'; // Replace with your Apps Script deployment URL
 
-    let selectedFeeling = null;
-    let weightChart = null;
-    let isGapiReady = false; // Flag to track GAPI initialization
+        let selectedFeeling = null;
+        let weightChart = null;
 
-    const quotes = [
-        "The groundwork for all happiness is good health.",
-        "Take care of your body. It's the only place you have to live.",
-        "Health is not about the weight you lose, but about the life you gain.",
-        "Your body can do it. It's your mind you need to convince.",
-        "Progress, not perfection.",
-        "Small changes lead to big results.",
-        "Believe in yourself and all that you are.",
-        "Every meal is a fresh start.",
-        "You are stronger than your excuses.",
-        "Healthy eating is a form of self-respect."
-    ];
+        const quotes = [
+            "The groundwork for all happiness is good health.",
+            "Take care of your body. It's the only place you have to live.",
+            "Health is not about the weight you lose, but about the life you gain.",
+            "Your body can do it. It's your mind you need to convince.",
+            "Progress, not perfection.",
+            "Small changes lead to big results.",
+            "Believe in yourself and all that you are.",
+            "Every meal is a fresh start.",
+            "You are stronger than your excuses.",
+            "Healthy eating is a form of self-respect."
+        ];
 
-    function gapiLoaded() {
-        gapi.load('client:auth2', initGapi);
-    }
-
-    async function initGapi() {
-        try {
-            await gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                discoveryDocs: [DISCOVERY_DOC],
-                scope: SCOPES
-            });
-            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                await gapi.auth2.getAuthInstance().signIn();
-            }
-            isGapiReady = true; // Set flag to true on successful init
-            await loadData();
-        } catch (error) {
-            console.error('GAPI Initialization Error:', error);
-            showError('Failed to initialize Google API. Check console for details.');
-        }
-    }
-
-    async function readSheet(range = 'Sheet1!A1:Z1000') {
-        if (!isGapiReady) {
-            console.error('GAPI client not initialized');
-            showError('API not ready. Please wait or refresh.');
-            return [];
-        }
-        try {
-            const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: SHEET_ID,
-                range: range
-            });
-            return response.result.values || [];
-        } catch (error) {
-            console.error('Read error:', error);
-            showError('Failed to load data from sheet.');
-            return [];
-        }
-    }
-
-    async function appendToSheet(values, range = 'Sheet1') {
-        if (!isGapiReady) {
-            console.error('GAPI client not initialized');
-            showError('API not ready. Please wait or refresh.');
-            return;
-        }
-        try {
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: SHEET_ID,
-                range: range,
-                valueInputOption: 'USER_ENTERED',
-                resource: { values: [values] }
-            });
-        } catch (error) {
-            console.error('Write error:', error);
-            showError('Failed to save data to sheet.');
-        }
-    }
-
-    async function loadData() {
-        await updateCaloriesDisplay();
-        await updateCurrentWeight();
-        await displayTodaysMeals();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Non-GAPI initialization
-        document.getElementById('mealHour').addEventListener('focus', setCurrentHour);
-        document.querySelector('.hamburger-menu').addEventListener('click', toggleSidebar);
-
-        // Update button onclick to check GAPI readiness
-        document.getElementById('logMealBtn').onclick = async function() {
-            if (!isGapiReady) {
-                showError('API not ready. Please wait or refresh.');
-                return;
-            }
-            await logMeal();
-        };
-
-        // Similarly update weight button if needed
-        document.getElementById('saveWeightBtn').onclick = async function() {
-            if (!isGapiReady) {
-                showError('API not ready. Please wait or refresh.');
-                return;
-            }
-            await saveWeight();
-        };
-    });
-
-    function selectFeeling(rating) {
-        selectedFeeling = rating;
-        document.querySelectorAll('#feelingRating span').forEach((span, index) => {
-            if (index + 1 === rating) {
-                span.classList.add('selected');
-            } else {
-                span.classList.remove('selected');
-            }
-        });
-    }
-
-    async function logMeal() {
-        const hour = document.getElementById('mealHour').value;
-        const type = document.getElementById('mealType').value;
-        const description = document.getElementById('mealDescription').value;
-        const calories = document.getElementById('calories').value;
-
-        if (!hour || !type || !description) {
-            showError('Please fill in all required fields');
-            return;
-        }
-
-        if (!selectedFeeling) {
-            showError('Please select how you felt');
-            return;
-        }
-
-        setButtonLoading('logMealBtn', true);
-
-        try {
-            const values = [Date.now(), new Date().toDateString(), parseInt(hour), type, description, calories ? parseInt(calories) : '', selectedFeeling, Date.now()];
-            await appendToSheet(values, 'Meals!A:H');
-            clearMealForm();
-            await displayTodaysMeals();
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadQuote();
             await updateCaloriesDisplay();
-            showSuccess('Meal logged successfully!');
-        } catch (error) {
-            showError('Failed to log meal.');
-        } finally {
-            setButtonLoading('logMealBtn', false);
+            await updateCurrentWeight();
+            await displayTodaysMeals();
+        });
+
+        async function apiCall(action, params = {}) {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action, ...params })
+                });
+
+                const data = await response.json();
+                if (data.status === 'error') {
+                    throw new Error(data.message);
+                }
+                return data.result;
+            } catch (error) {
+                console.error('API error:', error);
+                throw error;
+            }
         }
-    }
 
-    function clearMealForm() {
-        document.getElementById('mealHour').value = '';
-        document.getElementById('mealType').value = '';
-        document.getElementById('mealDescription').value = '';
-        document.getElementById('calories').value = '';
-        selectedFeeling = null;
-        document.querySelectorAll('#feelingRating span').forEach(span => span.classList.remove('selected'));
-    }
+        async function loadQuote() {
+            try {
+                const quote = await apiCall('serverGetQuote');
+                document.getElementById('quoteOfTheDay').textContent = quote;
+            } catch (error) {
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                document.getElementById('quoteOfTheDay').textContent = randomQuote;
+            }
+        }
 
-    async function displayTodaysMeals() {
-        try {
-            const data = await readSheet('Meals!A:H');
-            const today = new Date().toDateString();
-            const mealsList = document.getElementById('todayMealsList');
-            const todayMeals = data.filter(row => row[1] === today);
+        function selectFeeling(rating) {
+            selectedFeeling = rating;
+            document.querySelectorAll('#feelingRating span').forEach((span, index) => {
+                if (index + 1 === rating) {
+                    span.classList.add('selected');
+                } else {
+                    span.classList.remove('selected');
+                }
+            });
+        }
 
-            if (todayMeals.length === 0) {
-                mealsList.innerHTML = '<div class="no-meals">No meals logged today</div>';
+        async function logMeal() {
+            const hour = document.getElementById('mealHour').value;
+            const type = document.getElementById('mealType').value;
+            const description = document.getElementById('mealDescription').value;
+            const calories = document.getElementById('calories').value;
+
+            if (!hour || !type || !description) {
+                showError('Please fill in all required fields');
                 return;
             }
 
-            let mealsHtml = '';
-            todayMeals.forEach(meal => {
-                const feelingEmoji = ['😞', '😕', '😐', '😊', '😍'][meal[6] - 1];
-                mealsHtml += `
-                    <div class="meal-item">
-                        <div class="meal-details">
-                            <div class="meal-time">${meal[2]}:00 ${feelingEmoji}</div>
-                            <div class="meal-type">${meal[3]}</div>
-                            <div class="meal-description">${meal[4]}</div>
+            if (!selectedFeeling) {
+                showError('Please select how you felt');
+                return;
+            }
+
+            setButtonLoading('logMealBtn', true);
+
+            try {
+                await apiCall('serverLogMeal', {
+                    hour: parseInt(hour),
+                    type,
+                    description,
+                    calories: calories ? parseInt(calories) : null,
+                    feeling: selectedFeeling
+                });
+
+                clearMealForm();
+                await displayTodaysMeals();
+                await updateCaloriesDisplay();
+                showSuccess('Meal logged successfully!');
+            } catch (error) {
+                showError('Failed to log meal: ' + error.message);
+            } finally {
+                setButtonLoading('logMealBtn', false);
+            }
+        }
+
+        function clearMealForm() {
+            document.getElementById('mealHour').value = '';
+            document.getElementById('mealType').value = '';
+            document.getElementById('mealDescription').value = '';
+            document.getElementById('calories').value = '';
+            selectedFeeling = null;
+            document.querySelectorAll('#feelingRating span').forEach(span => span.classList.remove('selected'));
+        }
+
+        async function displayTodaysMeals() {
+            try {
+                const meals = await apiCall('serverGetTodayMeals');
+                const mealsList = document.getElementById('todayMealsList');
+
+                if (meals.length === 0) {
+                    mealsList.innerHTML = '<div class="no-meals">No meals logged today</div>';
+                    return;
+                }
+
+                meals.sort((a, b) => a.hour - b.hour);
+                let mealsHtml = '';
+                meals.forEach(meal => {
+                    const feelingEmoji = ['😞', '😕', '😐', '😊', '😍'][meal.feeling - 1];
+                    mealsHtml += `
+                        <div class="meal-item">
+                            <div class="meal-details">
+                                <div class="meal-time">${meal.hour}:00 ${feelingEmoji}</div>
+                                <div class="meal-type">${meal.type}</div>
+                                <div class="meal-description">${meal.description}</div>
+                            </div>
+                            <div class="meal-calories">${meal.calories || 'N/A'} cal</div>
                         </div>
-                        <div class="meal-calories">${meal[5] || 'N/A'} cal</div>
-                    </div>
-                `;
-            });
-            mealsList.innerHTML = mealsHtml;
-        } catch (error) {
-            document.getElementById('todayMealsList').innerHTML = '<div class="no-meals">Error loading meals</div>';
-        }
-    }
-
-    async function updateCaloriesDisplay() {
-        try {
-            const data = await readSheet('Meals!A:H');
-            const today = new Date().toDateString();
-            const total = data
-                .filter(row => row[1] === today && row[5])
-                .reduce((sum, row) => sum + (parseInt(row[5]) || 0), 0);
-            document.getElementById('dailyCalories').textContent = total;
-        } catch (error) {
-            document.getElementById('dailyCalories').textContent = '0';
-        }
-    }
-
-    function showWeightModal() {
-        document.getElementById('weightModal').style.display = 'block';
-    }
-
-    function closeWeightModal() {
-        document.getElementById('weightModal').style.display = 'none';
-        document.getElementById('weightInput').value = '';
-        hideError('weightErrorMessage');
-    }
-
-    async function saveWeight() {
-        const weight = parseFloat(document.getElementById('weightInput').value);
-        if (!weight || weight <= 0) {
-            showError('Please enter a valid weight', 'weightErrorMessage');
-            return;
+                    `;
+                });
+                mealsList.innerHTML = mealsHtml;
+            } catch (error) {
+                document.getElementById('todayMealsList').innerHTML = '<div class="no-meals">Error loading meals</div>';
+            }
         }
 
-        setButtonLoading('saveWeightBtn', true);
-
-        try {
-            const values = [Date.now(), new Date().toDateString(), weight, Date.now()];
-            await appendToSheet(values, 'Weights!A:D');
-            await updateCurrentWeight();
-            await displayWeightHistory();
-            await updateWeightChart();
-            showSuccess('Weight saved successfully!');
-        } catch (error) {
-            showError('Failed to save weight.', 'weightErrorMessage');
-        } finally {
-            setButtonLoading('saveWeightBtn', false);
-            closeWeightModal();
+        async function updateCaloriesDisplay() {
+            try {
+                const calories = await apiCall('serverGetDailyCalories');
+                document.getElementById('dailyCalories').textContent = calories;
+            } catch (error) {
+                document.getElementById('dailyCalories').textContent = '0';
+            }
         }
-    }
 
-    async function updateCurrentWeight() {
-        try {
-            const data = await readSheet('Weights!A:D');
-            if (data.length > 1) {
-                data.sort((a, b) => b[3] - a[3]); // Sort by timestamp
-                document.getElementById('currentWeightValue').textContent = `${data[1][2]} kg`;
-            } else {
+        function showWeightModal() {
+            document.getElementById('weightModal').style.display = 'block';
+        }
+
+        function closeWeightModal() {
+            document.getElementById('weightModal').style.display = 'none';
+            document.getElementById('weightInput').value = '';
+            hideError('weightErrorMessage');
+        }
+
+        async function saveWeight() {
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            if (!weight || weight <= 0) {
+                showError('Please enter a valid weight', 'weightErrorMessage');
+                return;
+            }
+
+            setButtonLoading('saveWeightBtn', true);
+
+            try {
+                await apiCall('serverLogWeight', { weight });
+                await updateCurrentWeight();
+                await displayWeightHistory();
+                await updateWeightChart();
+                showSuccess('Weight saved successfully!');
+            } catch (error) {
+                showError('Failed to save weight: ' + error.message, 'weightErrorMessage');
+            } finally {
+                setButtonLoading('saveWeightBtn', false);
+                closeWeightModal();
+            }
+        }
+
+        async function updateCurrentWeight() {
+            try {
+                const weight = await apiCall('serverGetCurrentWeight');
+                document.getElementById('currentWeightValue').textContent = `${weight} kg`;
+            } catch (error) {
                 document.getElementById('currentWeightValue').textContent = 'No data';
             }
-        } catch (error) {
-            document.getElementById('currentWeightValue').textContent = 'No data';
         }
-    }
 
-    async function displayWeightHistory() {
-        try {
-            const data = await readSheet('Weights!A:D');
-            const historyList = document.getElementById('weightHistoryList');
-            if (data.length <= 1) {
-                historyList.innerHTML = '<div class="no-meals">No weight data available</div>';
+        async function displayWeightHistory() {
+            try {
+                const weights = await apiCall('serverGetWeights');
+                const historyList = document.getElementById('weightHistoryList');
+                if (weights.length === 0) {
+                    historyList.innerHTML = '<div class="no-meals">No weight data available</div>';
+                    return;
+                }
+
+                let historyHtml = '';
+                weights.forEach(weight => {
+                    const date = new Date(weight.timestamp).toLocaleDateString();
+                    historyHtml += `
+                        <div class="weight-entry">
+                            <span>${date}</span>
+                            <span>${weight.weight} kg</span>
+                        </div>
+                    `;
+                });
+                historyList.innerHTML = historyHtml;
+            } catch (error) {
+                historyList.innerHTML = '<div class="no-meals">Error loading weight history</div>';
+            }
+        }
+
+        function initWeightChart() {
+            if (weightChart) {
+                updateWeightChart();
                 return;
             }
 
-            let historyHtml = '';
-            data.slice(1).forEach(row => {
-                const date = new Date(parseInt(row[3])).toLocaleDateString();
-                historyHtml += `
-                    <div class="weight-entry">
-                        <span>${date}</span>
-                        <span>${row[2]} kg</span>
-                    </div>
-                `;
-            });
-            historyList.innerHTML = historyHtml;
-        } catch (error) {
-            historyList.innerHTML = '<div class="no-meals">Error loading weight history</div>';
-        }
-    }
-
-    function initWeightChart() {
-        if (weightChart) {
-            updateWeightChart();
-            return;
-        }
-
-        const ctx = document.getElementById('weightChart').getContext('2d');
-        weightChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Weight (kg)',
-                    data: [],
-                    borderColor: 'rgba(255, 255, 255, 0.8)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: { color: 'white' }
-                    }
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: [],
+                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
-                scales: {
-                    x: {
-                        ticks: { color: 'white' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
                     },
-                    y: {
-                        ticks: { color: 'white' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
                     }
                 }
+            });
+        }
+
+        async function updateWeightChart() {
+            if (!weightChart) return;
+            try {
+                const weights = await apiCall('serverGetWeights');
+                const sortedWeights = weights.sort((a, b) => a.timestamp - b.timestamp);
+                const labels = sortedWeights.map(w => {
+                    const date = new Date(w.timestamp);
+                    return `${date.getMonth() + 1}/${date.getDate()}`;
+                });
+                const data = sortedWeights.map(w => w.weight);
+                weightChart.data.labels = labels;
+                weightChart.data.datasets[0].data = data;
+                weightChart.update();
+            } catch (error) {
+                console.error('Error updating chart:', error);
             }
-        });
-    }
-
-    async function updateWeightChart() {
-        if (!weightChart) return;
-        try {
-            const data = await readSheet('Weights!A:D');
-            const sortedData = data.slice(1).map(row => ({
-                date: new Date(parseInt(row[3])).toLocaleDateString(),
-                weight: parseFloat(row[2])
-            })).sort((a, b) => new Date(a.date) - new Date(b.date));
-            weightChart.data.labels = sortedData.map(row => row.date);
-            weightChart.data.datasets[0].data = sortedData.map(row => row.weight);
-            weightChart.update();
-        } catch (error) {
-            console.error('Error updating chart:', error);
         }
-    }
 
-    async function loadQuote() {
-        try {
-            document.getElementById('quoteOfTheDay').textContent = quotes[Math.floor(Math.random() * quotes.length)];
-        } catch (error) {
-            document.getElementById('quoteOfTheDay').textContent = 'Loading inspirational quote failed.';
+        function showError(message, elementId = 'errorMessage') {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => hideError(elementId), 5000);
         }
-    }
 
-    function showHome() {
-        document.getElementById('homeSection').style.display = 'block';
-        document.getElementById('weightSection').style.display = 'none';
-        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-        document.querySelectorAll('.sidebar-item')[0].classList.add('active');
-        closeSidebar();
-    }
-
-    function showWeightTracking() {
-        document.getElementById('homeSection').style.display = 'none';
-        document.getElementById('weightSection').style.display = 'block';
-        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-        document.querySelectorAll('.sidebar-item')[1].classList.add('active');
-        initWeightChart();
-        displayWeightHistory();
-        closeSidebar();
-    }
-
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('open');
-    }
-
-    function closeSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        sidebar.classList.remove('open');
-        overlay.classList.remove('open');
-    }
-
-    function showError(message, elementId = 'errorMessage') {
-        const errorElement = document.getElementById(elementId);
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-        setTimeout(() => hideError(elementId), 5000);
-    }
-
-    function hideError(elementId = 'errorMessage') {
-        const errorElement = document.getElementById(elementId);
-        errorElement.style.display = 'none';
-    }
-
-    function showSuccess(message, elementId = 'successMessage') {
-        const successElement = document.getElementById(elementId);
-        successElement.textContent = message;
-        successElement.style.display = 'block';
-        setTimeout(() => successElement.style.display = 'none', 3000);
-    }
-
-    function setButtonLoading(buttonId, isLoading) {
-        const button = document.getElementById(buttonId);
-        const btnText = button.querySelector('.btn-text');
-        const loading = button.querySelector('.loading');
-        if (isLoading) {
-            button.disabled = true;
-            btnText.style.opacity = '0';
-            loading.style.display = 'block';
-        } else {
-            button.disabled = false;
-            btnText.style.opacity = '1';
-            loading.style.display = 'none';
+        function hideError(elementId = 'errorMessage') {
+            const errorElement = document.getElementById(elementId);
+            errorElement.style.display = 'none';
         }
-    }
 
-    window.onclick = function(event) {
-        const modal = document.getElementById('weightModal');
-        if (event.target === modal) {
-            closeWeightModal();
+        function showSuccess(message, elementId = 'successMessage') {
+            const successElement = document.getElementById(elementId);
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            setTimeout(() => successElement.style.display = 'none', 3000);
         }
-    };
 
-    function setCurrentHour() {
-        const now = new Date();
-        const currentHour = now.getHours();
-        const hourSelect = document.getElementById('mealHour');
-        if (!hourSelect.value) {
-            hourSelect.value = currentHour.toString();
+        function setButtonLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const btnText = button.querySelector('.btn-text');
+            const loading = button.querySelector('.loading');
+            if (isLoading) {
+                button.disabled = true;
+                btnText.style.opacity = '0';
+                loading.style.display = 'block';
+            } else {
+                button.disabled = false;
+                btnText.style.opacity = '1';
+                loading.style.display = 'none';
+            }
         }
-    }
-</script>
-        
-   </body>
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('weightModal');
+            if (event.target === modal) {
+                closeWeightModal();
+            }
+        };
+
+        function setCurrentHour() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const hourSelect = document.getElementById('mealHour');
+            if (!hourSelect.value) {
+                hourSelect.value = currentHour.toString();
+            }
+        }
+
+        document.getElementById('mealHour').addEventListener('focus', setCurrentHour);
+    </script>
+</body>
 </html>
