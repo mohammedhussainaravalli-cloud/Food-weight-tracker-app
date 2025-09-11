@@ -639,7 +639,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmHDDkaJFyZ_naR8y0mT-ZfZJhhhtunl5lTMsdsb39mJoYlOq36-N8MHCq-y3tv_qN/exec'; // Replace with your Apps Script deployment URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysHVSmkPtg9pH0HL2yQKUvV2phvKSziHn_y8ltDmT85oEOQm1v2Jcc64fAN2m4BsdZ/exec'; // Replace with your Apps Script deployment URL
 
         let selectedFeeling = null;
         let weightChart = null;
@@ -668,10 +668,11 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify({ action, ...params }),
                     headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ action, ...params })
+                        "Content-Type": "text/plain;charset=utf-8"
+                    }
                 });
 
                 const data = await response.json();
