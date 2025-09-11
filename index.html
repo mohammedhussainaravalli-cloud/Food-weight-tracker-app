@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="MH's Weight Loss App">
+    <script src="https://apis.google.com/js/api.js"></script> <!-- Google API Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -639,7 +640,11 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwf9cglmDOflb87RJwbtyHQCiU9r7-esfw9HqnWXgZ-U4PtSJdSZ-blek187SjPBcY/exec'; // Replace with your deployed Apps Script URL
+        const CLIENT_ID = '286344757695-g65hshgegne8hp6fgqpbtq9uf05550b2.apps.googleusercontent.com'; // Replace with your OAuth Client ID
+        const API_KEY = 'AIzaSyCAcN8DXSRqBv6TDEYikP9O8Eb_C_cFNfw'; // Replace with your API Key
+        const SHEET_ID = '10OQj4RyAMYYowEiNXLlN0B6zgUOItZx6RvS9eAC34HY'; // Replace with your Google Sheet ID
+        const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
         let selectedFeeling = null;
         let weightChart = null;
@@ -657,48 +662,61 @@
             "Healthy eating is a form of self-respect."
         ];
 
+        async function initGapi() {
+            await gapi.load('client:auth2');
+            await gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: [DISCOVERY_DOC],
+                scope: SCOPES
+            });
+
+            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
+                try {
+                    await gapi.auth2.getAuthInstance().signIn();
+                } catch (error) {
+                    console.error('Sign-in error:', error);
+                    showError('Authentication failed. Please try again.');
+                }
+            }
+            await loadData();
+        }
+
+        async function readSheet(range = 'Sheet1!A1:Z1000') {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SHEET_ID,
+                    range: range
+                });
+                return response.result.values || [];
+            } catch (error) {
+                console.error('Read error:', error);
+                showError('Failed to load data from sheet.');
+                return [];
+            }
+        }
+
+        async function appendToSheet(values, range = 'Sheet1') {
+            try {
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SHEET_ID,
+                    range: range,
+                    valueInputOption: 'USER_ENTERED',
+                    resource: { values: [values] }
+                });
+            } catch (error) {
+                console.error('Write error:', error);
+                showError('Failed to save data to sheet.');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async function() {
+            await initGapi();
             await loadQuote();
             await updateCaloriesDisplay();
             await updateCurrentWeight();
             await displayTodaysMeals();
         });
-
-        async function apiCall(action, params = {}) {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    mode: 'cors', // Enable CORS mode
-                    body: JSON.stringify({ action, ...params })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                if (data.status === 'error') {
-                    throw new Error(data.message);
-                }
-                return data.result;
-            } catch (error) {
-                console.error('API error:', error);
-                throw error;
-            }
-        }
-
-        async function loadQuote() {
-            try {
-                const quote = await apiCall('serverGetQuote');
-                document.getElementById('quoteOfTheDay').textContent = quote;
-            } catch (error) {
-                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-                document.getElementById('quoteOfTheDay').textContent = randomQuote;
-            }
-        }
 
         function selectFeeling(rating) {
             selectedFeeling = rating;
@@ -730,20 +748,14 @@
             setButtonLoading('logMealBtn', true);
 
             try {
-                await apiCall('serverLogMeal', {
-                    hour: parseInt(hour),
-                    type,
-                    description,
-                    calories: calories ? parseInt(calories) : null,
-                    feeling: selectedFeeling
-                });
-
+                const values = [Date.now(), new Date().toDateString(), parseInt(hour), type, description, calories ? parseInt(calories) : '', selectedFeeling, Date.now()];
+                await appendToSheet(values, 'Meals!A:H');
                 clearMealForm();
                 await displayTodaysMeals();
                 await updateCaloriesDisplay();
                 showSuccess('Meal logged successfully!');
             } catch (error) {
-                showError('Failed to log meal: ' + error.message);
+                showError('Failed to log meal.');
             } finally {
                 setButtonLoading('logMealBtn', false);
             }
@@ -760,39 +772,44 @@
 
         async function displayTodaysMeals() {
             try {
-                const meals = await apiCall('serverGetTodayMeals');
+                const data = await readSheet('Meals!A:H');
+                const today = new Date().toDateString();
                 const mealsList = document.getElementById('todayMealsList');
+                const todayMeals = data.filter(row => row[1] === today);
 
-                if (meals.length === 0) {
+                if (todayMeals.length === 0) {
                     mealsList.innerHTML = '<div class="no-meals">No meals logged today</div>';
                     return;
                 }
 
-                meals.sort((a, b) => a.hour - b.hour);
                 let mealsHtml = '';
-                meals.forEach(meal => {
-                    const feelingEmoji = ['😞', '😕', '😐', '😊', '😍'][meal.feeling - 1];
+                todayMeals.forEach(meal => {
+                    const feelingEmoji = ['😞', '😕', '😐', '😊', '😍'][meal[6] - 1];
                     mealsHtml += `
                         <div class="meal-item">
                             <div class="meal-details">
-                                <div class="meal-time">${meal.hour}:00 ${feelingEmoji}</div>
-                                <div class="meal-type">${meal.type}</div>
-                                <div class="meal-description">${meal.description}</div>
+                                <div class="meal-time">${meal[2]}:00 ${feelingEmoji}</div>
+                                <div class="meal-type">${meal[3]}</div>
+                                <div class="meal-description">${meal[4]}</div>
                             </div>
-                            <div class="meal-calories">${meal.calories || 'N/A'} cal</div>
+                            <div class="meal-calories">${meal[5] || 'N/A'} cal</div>
                         </div>
                     `;
                 });
                 mealsList.innerHTML = mealsHtml;
             } catch (error) {
-                mealsList.innerHTML = '<div class="no-meals">Error loading meals</div>';
+                document.getElementById('todayMealsList').innerHTML = '<div class="no-meals">Error loading meals</div>';
             }
         }
 
         async function updateCaloriesDisplay() {
             try {
-                const calories = await apiCall('serverGetDailyCalories');
-                document.getElementById('dailyCalories').textContent = calories;
+                const data = await readSheet('Meals!A:H');
+                const today = new Date().toDateString();
+                const total = data
+                    .filter(row => row[1] === today && row[5])
+                    .reduce((sum, row) => sum + (parseInt(row[5]) || 0), 0);
+                document.getElementById('dailyCalories').textContent = total;
             } catch (error) {
                 document.getElementById('dailyCalories').textContent = '0';
             }
@@ -818,13 +835,14 @@
             setButtonLoading('saveWeightBtn', true);
 
             try {
-                await apiCall('serverLogWeight', { weight });
+                const values = [Date.now(), new Date().toDateString(), weight, Date.now()];
+                await appendToSheet(values, 'Weights!A:D');
                 await updateCurrentWeight();
                 await displayWeightHistory();
                 await updateWeightChart();
                 showSuccess('Weight saved successfully!');
             } catch (error) {
-                showError('Failed to save weight: ' + error.message, 'weightErrorMessage');
+                showError('Failed to save weight.', 'weightErrorMessage');
             } finally {
                 setButtonLoading('saveWeightBtn', false);
                 closeWeightModal();
@@ -833,8 +851,13 @@
 
         async function updateCurrentWeight() {
             try {
-                const weight = await apiCall('serverGetCurrentWeight');
-                document.getElementById('currentWeightValue').textContent = `${weight} kg`;
+                const data = await readSheet('Weights!A:D');
+                if (data.length > 1) {
+                    data.sort((a, b) => b[3] - a[3]); // Sort by timestamp
+                    document.getElementById('currentWeightValue').textContent = `${data[1][2]} kg`;
+                } else {
+                    document.getElementById('currentWeightValue').textContent = 'No data';
+                }
             } catch (error) {
                 document.getElementById('currentWeightValue').textContent = 'No data';
             }
@@ -842,20 +865,20 @@
 
         async function displayWeightHistory() {
             try {
-                const weights = await apiCall('serverGetWeights');
+                const data = await readSheet('Weights!A:D');
                 const historyList = document.getElementById('weightHistoryList');
-                if (weights.length === 0) {
+                if (data.length <= 1) {
                     historyList.innerHTML = '<div class="no-meals">No weight data available</div>';
                     return;
                 }
 
                 let historyHtml = '';
-                weights.forEach(weight => {
-                    const date = new Date(weight.timestamp).toLocaleDateString();
+                data.slice(1).forEach(row => {
+                    const date = new Date(parseInt(row[3])).toLocaleDateString();
                     historyHtml += `
                         <div class="weight-entry">
                             <span>${date}</span>
-                            <span>${weight.weight} kg</span>
+                            <span>${row[2]} kg</span>
                         </div>
                     `;
                 });
@@ -911,18 +934,24 @@
         async function updateWeightChart() {
             if (!weightChart) return;
             try {
-                const weights = await apiCall('serverGetWeights');
-                const sortedWeights = weights.sort((a, b) => a.timestamp - b.timestamp);
-                const labels = sortedWeights.map(w => {
-                    const date = new Date(w.timestamp);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                });
-                const data = sortedWeights.map(w => w.weight);
-                weightChart.data.labels = labels;
-                weightChart.data.datasets[0].data = data;
+                const data = await readSheet('Weights!A:D');
+                const sortedData = data.slice(1).map(row => ({
+                    date: new Date(parseInt(row[3])).toLocaleDateString(),
+                    weight: parseFloat(row[2])
+                })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                weightChart.data.labels = sortedData.map(row => row.date);
+                weightChart.data.datasets[0].data = sortedData.map(row => row.weight);
                 weightChart.update();
             } catch (error) {
                 console.error('Error updating chart:', error);
+            }
+        }
+
+        async function loadQuote() {
+            try {
+                document.getElementById('quoteOfTheDay').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+            } catch (error) {
+                document.getElementById('quoteOfTheDay').textContent = 'Loading inspirational quote failed.';
             }
         }
 
