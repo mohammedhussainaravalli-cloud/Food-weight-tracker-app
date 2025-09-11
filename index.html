@@ -646,72 +646,91 @@
         const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
         const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
-        let selectedFeeling = null;
-        let weightChart = null;
 
-        const quotes = [
-            "The groundwork for all happiness is good health.",
-            "Take care of your body. It's the only place you have to live.",
-            "Health is not about the weight you lose, but about the life you gain.",
-            "Your body can do it. It's your mind you need to convince.",
-            "Progress, not perfection.",
-            "Small changes lead to big results.",
-            "Believe in yourself and all that you are.",
-            "Every meal is a fresh start.",
-            "You are stronger than your excuses.",
-            "Healthy eating is a form of self-respect."
-        ];
+    let selectedFeeling = null;
+    let weightChart = null;
 
-        async function initGapi() {
-            await gapi.load('client:auth2');
+    const quotes = [
+        "The groundwork for all happiness is good health.",
+        "Take care of your body. It's the only place you have to live.",
+        "Health is not about the weight you lose, but about the life you gain.",
+        "Your body can do it. It's your mind you need to convince.",
+        "Progress, not perfection.",
+        "Small changes lead to big results.",
+        "Believe in yourself and all that you are.",
+        "Every meal is a fresh start.",
+        "You are stronger than your excuses.",
+        "Healthy eating is a form of self-respect."
+    ];
+
+    function gapiLoaded() {
+        gapi.load('client:auth2', initGapi);
+    }
+
+    async function initGapi() {
+        try {
             await gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
                 discoveryDocs: [DISCOVERY_DOC],
                 scope: SCOPES
             });
-
             if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                try {
-                    await gapi.auth2.getAuthInstance().signIn();
-                } catch (error) {
-                    console.error('Sign-in error:', error);
-                    showError('Authentication failed. Please try again.');
-                }
+                await gapi.auth2.getAuthInstance().signIn();
             }
-            await loadData();
+            await loadData(); // Load initial data after auth
+        } catch (error) {
+            console.error('GAPI Initialization Error:', error);
+            showError('Failed to initialize Google API. Check console for details.');
         }
+    }
 
-        async function readSheet(range = 'Sheet1!A1:Z1000') {
-            try {
-                const response = await gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: SHEET_ID,
-                    range: range
-                });
-                return response.result.values || [];
-            } catch (error) {
-                console.error('Read error:', error);
-                showError('Failed to load data from sheet.');
-                return [];
-            }
+    async function readSheet(range = 'Sheet1!A1:Z1000') {
+        if (!gapi.client) {
+            console.error('GAPI client not initialized');
+            showError('API not ready. Please refresh and sign in.');
+            return [];
         }
+        try {
+            const response = await gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: SHEET_ID,
+                range: range
+            });
+            return response.result.values || [];
+        } catch (error) {
+            console.error('Read error:', error);
+            showError('Failed to load data from sheet.');
+            return [];
+        }
+    }
 
-        async function appendToSheet(values, range = 'Sheet1') {
-            try {
-                await gapi.client.sheets.spreadsheets.values.append({
-                    spreadsheetId: SHEET_ID,
-                    range: range,
-                    valueInputOption: 'USER_ENTERED',
-                    resource: { values: [values] }
-                });
-            } catch (error) {
-                console.error('Write error:', error);
-                showError('Failed to save data to sheet.');
-            }
+    async function appendToSheet(values, range = 'Sheet1') {
+        if (!gapi.client) {
+            console.error('GAPI client not initialized');
+            showError('API not ready. Please refresh and sign in.');
+            return;
         }
+        try {
+            await gapi.client.sheets.spreadsheets.values.append({
+                spreadsheetId: SHEET_ID,
+                range: range,
+                valueInputOption: 'USER_ENTERED',
+                resource: { values: [values] }
+            });
+        } catch (error) {
+            console.error('Write error:', error);
+            showError('Failed to save data to sheet.');
+        }
+    }
+
+    async function loadData() {
+        await updateCaloriesDisplay();
+        await updateCurrentWeight();
+        await displayTodaysMeals();
+    }
+
 
         document.addEventListener('DOMContentLoaded', async function() {
-            await initGapi();
             await loadQuote();
             await updateCaloriesDisplay();
             await updateCurrentWeight();
