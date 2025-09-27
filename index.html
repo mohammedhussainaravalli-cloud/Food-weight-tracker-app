@@ -690,9 +690,8 @@
 
     <script>
         // SUPABASE CONFIGURATION - REPLACE WITH YOUR CREDENTIALS
-        const SUPABASE_URL = 'https://azttcadavuonflvqihjt.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc
-';
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
         
         // Global variables
         let selectedFeeling = null;
@@ -738,7 +737,117 @@
             }
         }
 
-        // UI FUNCTIONS (GLOBAL SCOPE)
+        // UTILITY FUNCTIONS
+        function showConnectionStatus(isOnline) {
+            const status = document.getElementById('connectionStatus');
+            if (isOnline) {
+                status.className = 'connection-status online';
+                status.textContent = 'Connected';
+                status.style.display = 'block';
+                setTimeout(() => status.style.display = 'none', 3000);
+            } else {
+                status.className = 'connection-status offline';
+                status.textContent = 'Offline - Check connection';
+                status.style.display = 'block';
+                setTimeout(() => status.style.display = 'none', 5000);
+            }
+        }
+
+        function showError(message, elementId = 'errorMessage') {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            setTimeout(() => {
+                hideError(elementId);
+            }, 5000);
+        }
+
+        function hideError(elementId = 'errorMessage') {
+            const errorElement = document.getElementById(elementId);
+            errorElement.style.display = 'none';
+        }
+
+        function showSuccess(message, elementId = 'successMessage') {
+            const successElement = document.getElementById(elementId);
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 3000);
+        }
+
+        function setButtonLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const btnText = button.querySelector('.btn-text');
+            const loading = button.querySelector('.loading');
+            
+            if (isLoading) {
+                button.disabled = true;
+                btnText.style.opacity = '0';
+                loading.style.display = 'block';
+            } else {
+                button.disabled = false;
+                btnText.style.opacity = '1';
+                loading.style.display = 'none';
+            }
+        }
+
+        function loadQuote() {
+            const today = new Date().toDateString();
+            const savedQuote = localStorage.getItem('dailyQuote');
+            
+            if (savedQuote) {
+                const parsed = JSON.parse(savedQuote);
+                if (parsed.date === today) {
+                    document.getElementById('quoteOfTheDay').textContent = parsed.quote;
+                    return;
+                }
+            }
+            
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quoteOfTheDay').textContent = randomQuote;
+            localStorage.setItem('dailyQuote', JSON.stringify({
+                quote: randomQuote,
+                date: today
+            }));
+        }
+
+        function setCurrentHour() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const hourSelect = document.getElementById('mealHour');
+            
+            if (!hourSelect.value) {
+                hourSelect.value = currentHour.toString();
+                suggestMealType();
+            }
+        }
+
+        function suggestMealType() {
+            const hour = parseInt(document.getElementById('mealHour').value);
+            const mealTypeSelect = document.getElementById('mealType');
+            
+            if (!mealTypeSelect.value && hour !== '') {
+                let suggestedType = '';
+                if (hour >= 6 && hour < 11) {
+                    suggestedType = 'Breakfast';
+                } else if (hour >= 11 && hour < 14) {
+                    suggestedType = 'Lunch';
+                } else if (hour >= 14 && hour < 17) {
+                    suggestedType = 'Mid-day snack';
+                } else if (hour >= 17 && hour < 21) {
+                    suggestedType = 'Dinner';
+                } else {
+                    suggestedType = 'Evening snack';
+                }
+                
+                mealTypeSelect.value = suggestedType;
+            }
+        }
+
+        // UI NAVIGATION FUNCTIONS (MOVED TO GLOBAL SCOPE)
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
@@ -796,7 +905,7 @@
             hideError('weightErrorMessage');
         }
 
-        // MEAL FUNCTIONS
+        // MEAL FUNCTIONS (MOVED TO GLOBAL SCOPE)
         async function logMeal() {
             const hour = document.getElementById('mealHour').value;
             const type = document.getElementById('mealType').value;
