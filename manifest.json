@@ -1,6 +1,6 @@
 {
   "name": "MH's Food/Weight Tracker",
-  "short_name": "MH's Food/Weight Tracker",
+  "short_name": "MH's Tracker",
   "description": "Track your meals and weight with MH's Weight Loss App",
   "start_url": "/Food-weight-tracker-app/index.html",
   "display": "standalone",
