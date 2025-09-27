@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="MH's Weight Loss App">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -355,7 +355,8 @@
         .chart-container {
             position: relative;
             width: 100vw;
-            height: 250px;
+            min-height: 200px;
+            height: auto;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 15px;
@@ -368,6 +369,7 @@
             width: 100% !important;
             height: 100% !important;
             max-width: 100%;
+            max-height: 100%;
         }
 
         .weight-input-btn {
@@ -517,7 +519,7 @@
             .form-group input, .form-group select { padding: 12px; font-size: 16px; }
             .btn-primary { min-height: 48px; font-size: 16px; border-radius: 0; margin: 16px 0 0 0; width: 100vw; }
             .modal-content { width: 100vw; height: 100vh; margin: 0; border-radius: 0; padding: 20px; }
-            .chart-container { padding: 12px; height: 220px; width: 100vw; }
+            .chart-container { padding: 12px; min-height: 220px; width: 100vw; }
             .sidebar { width: 85vw; left: -85vw; }
         }
 
@@ -526,7 +528,8 @@
             .calories-display { font-size: 10px; padding: 3px 6px; max-width: 45%; }
             .hamburger-menu { width: 30px; height: 30px; padding: 8px; }
             .hamburger-line { width: 18px; height: 2px; }
-            .chart-container { height: 200px; padding: 10px; }
+            .chart-container { min-height: 200px; padding: 10px; }
+            .sidebar { width: 90vw; left: -90vw; }
         }
 
         @media screen and (max-width: 320px) {
@@ -535,7 +538,7 @@
             .calories-display { font-size: 9px; padding: 2px 4px; max-width: 40%; }
             .greeting h1 { font-size: 18px; }
             .greeting h2 { font-size: 12px; }
-            .chart-container { height: 180px; padding: 8px; }
+            .chart-container { min-height: 180px; padding: 8px; }
             .sidebar { width: 90vw; left: -90vw; }
         }
 
@@ -690,9 +693,9 @@
 
     <script>
         // SUPABASE CONFIGURATION - REPLACE WITH YOUR CREDENTIALS
-        const SUPABASE_URL = 'https://azttcadavuonflvqihjt.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc';
-        
+        const SUPABASE_URL = 'https://azttcadavuonflvqihjt.supabase.co'; // Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc'; // Replace with your Supabase anon key
+
         // Global variables
         let selectedFeeling = null;
         let weightChart = null;
@@ -757,10 +760,7 @@
             const errorElement = document.getElementById(elementId);
             errorElement.textContent = message;
             errorElement.style.display = 'block';
-            
-            setTimeout(() => {
-                hideError(elementId);
-            }, 5000);
+            setTimeout(() => hideError(elementId), 5000);
         }
 
         function hideError(elementId = 'errorMessage') {
@@ -772,10 +772,7 @@
             const successElement = document.getElementById(elementId);
             successElement.textContent = message;
             successElement.style.display = 'block';
-            
-            setTimeout(() => {
-                successElement.style.display = 'none';
-            }, 3000);
+            setTimeout(() => successElement.style.display = 'none', 3000);
         }
 
         function setButtonLoading(buttonId, isLoading) {
@@ -847,7 +844,7 @@
             }
         }
 
-        // UI NAVIGATION FUNCTIONS (MOVED TO GLOBAL SCOPE)
+        // UI NAVIGATION FUNCTIONS
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
@@ -905,7 +902,7 @@
             hideError('weightErrorMessage');
         }
 
-        // MEAL FUNCTIONS (MOVED TO GLOBAL SCOPE)
+        // MEAL FUNCTIONS
         async function logMeal() {
             const hour = document.getElementById('mealHour').value;
             const type = document.getElementById('mealType').value;
@@ -972,3 +969,207 @@
             try {
                 const today = new Date().toISOString().split('T')[0];
                 const todayMeals = await supabaseRequest(`/meals?date=eq.${today}&order=hour.asc`);
+                
+                if (todayMeals.length === 0) {
+                    mealsList.innerHTML = '<div class="no-meals">No meals logged yet today.</div>';
+                    return;
+                }
+
+                mealsList.innerHTML = todayMeals.map(meal => `
+                    <div class="meal-item">
+                        <div class="meal-details">
+                            <div class="meal-time">${meal.hour}:00</div>
+                            <div class="meal-type">${meal.meal_type}</div>
+                            <div class="meal-description">${meal.description}</div>
+                            <div>Feeling: ${'😞😕😐😊😍'.split('')[meal.feeling - 1]}</div>
+                        </div>
+                        <div class="meal-calories">${meal.calories ? meal.calories + ' cal' : 'N/A'}</div>
+                    </div>
+                `).join('');
+                
+                showConnectionStatus(true);
+            } catch (error) {
+                console.error('Error fetching meals:', error);
+                mealsList.innerHTML = '<div class="no-meals">Failed to load meals. Please try again.</div>';
+                showConnectionStatus(false);
+            }
+        }
+
+        async function updateCaloriesDisplay() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const todayMeals = await supabaseRequest(`/meals?date=eq.${today}&select=calories`);
+                const totalCalories = todayMeals
+                    .filter(meal => meal.calories)
+                    .reduce((sum, meal) => sum + meal.calories, 0);
+                document.getElementById('dailyCalories').textContent = totalCalories || '0';
+            } catch (error) {
+                console.error('Error updating calories:', error);
+                document.getElementById('dailyCalories').textContent = 'Error';
+                showConnectionStatus(false);
+            }
+        }
+
+        // WEIGHT TRACKING FUNCTIONS
+        async function saveWeight() {
+            const weightInput = document.getElementById('weightInput').value;
+            
+            if (!weightInput || weightInput <= 0) {
+                showError('Please enter a valid weight', 'weightErrorMessage');
+                return;
+            }
+
+            setButtonLoading('saveWeightBtn', true);
+
+            try {
+                const weightEntry = {
+                    date: new Date().toISOString().split('T')[0],
+                    weight: parseFloat(weightInput)
+                };
+
+                await supabaseRequest('/weights', {
+                    method: 'POST',
+                    body: JSON.stringify(weightEntry)
+                });
+
+                await initWeightChart();
+                await displayWeightHistory();
+                await updateCurrentWeight();
+                closeWeightModal();
+                showSuccess('Weight logged successfully!');
+                showConnectionStatus(true);
+            } catch (error) {
+                console.error('Error saving weight:', error);
+                showError('Failed to save weight. Please try again.', 'weightErrorMessage');
+                showConnectionStatus(false);
+            } finally {
+                setButtonLoading('saveWeightBtn', false);
+            }
+        }
+
+        async function updateCurrentWeight() {
+            try {
+                const weights = await supabaseRequest('/weights?order=date.desc&limit=1');
+                if (weights.length > 0) {
+                    document.getElementById('currentWeightValue').textContent = `${weights[0].weight} kg`;
+                } else {
+                    document.getElementById('currentWeightValue').textContent = 'No weight logged';
+                }
+            } catch (error) {
+                console.error('Error fetching current weight:', error);
+                document.getElementById('currentWeightValue').textContent = 'Error';
+                showConnectionStatus(false);
+            }
+        }
+
+        async function displayWeightHistory() {
+            const weightHistoryList = document.getElementById('weightHistoryList');
+            
+            try {
+                const weights = await supabaseRequest('/weights?order=date.desc');
+                
+                if (weights.length === 0) {
+                    weightHistoryList.innerHTML = '<div>No weight entries yet.</div>';
+                    return;
+                }
+
+                weightHistoryList.innerHTML = weights.map(entry => `
+                    <div class="weight-entry">
+                        <span>${entry.date}</span>
+                        <span>${entry.weight} kg</span>
+                    </div>
+                `).join('');
+                
+                showConnectionStatus(true);
+            } catch (error) {
+                console.error('Error fetching weight history:', error);
+                weightHistoryList.innerHTML = '<div>Failed to load weight history.</div>';
+                showConnectionStatus(false);
+            }
+        }
+
+        async function initWeightChart() {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            
+            try {
+                const weights = await supabaseRequest('/weights?order=date.asc');
+                
+                if (weights.length === 0) {
+                    if (weightChart) weightChart.destroy();
+                    ctx.canvas.parentNode.innerHTML = '<div style="text-align: center; color: white;">No weight data available.</div>';
+                    return;
+                }
+
+                const labels = weights.map(entry => entry.date);
+                const data = weights.map(entry => entry.weight);
+
+                if (weightChart) {
+                    weightChart.destroy();
+                }
+
+                weightChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Weight (kg)',
+                            data: data,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Weight (kg)',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' },
+                                beginAtZero: false
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        }
+                    }
+                });
+                
+                showConnectionStatus(true);
+            } catch (error) {
+                console.error('Error initializing weight chart:', error);
+                ctx.canvas.parentNode.innerHTML = '<div style="text-align: center; color: white;">Failed to load chart.</div>';
+                showConnectionStatus(false);
+            }
+        }
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            loadQuote();
+            setCurrentHour();
+            displayTodaysMeals();
+            updateCaloriesDisplay();
+            updateCurrentWeight();
+            
+            document.getElementById('mealHour').addEventListener('change', suggestMealType);
+        });
+    </script>
+</body>
+</html>
