@@ -1,8 +1,8 @@
 const CACHE_NAME = 'mh-weight-loss-app-v1';
 const urlsToCache = [
   '/index.html',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/icons:/icon-192x192.png',
+  '/icons:/icon-512x512.png',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js'
 ];
 
