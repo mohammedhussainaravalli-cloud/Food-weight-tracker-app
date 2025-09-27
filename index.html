@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+   
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -11,8 +12,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="MH's Weight Loss App">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -692,6 +696,18 @@
     </div>
 
     <script>
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+    });
+} 
+        
         // SUPABASE CONFIGURATION - REPLACE WITH YOUR CREDENTIALS
         const SUPABASE_URL = 'https://azttcadavuonflvqihjt.supabase.co'; // Replace with your Supabase URL
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc'; // Replace with your Supabase anon key
