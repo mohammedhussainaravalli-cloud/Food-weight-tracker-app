@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
+    <base target="_top">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MH's Weight Loss App</title>
+    
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="MH's Weight Loss App">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -16,18 +20,29 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
             overflow-x: hidden;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            padding: 12px 16px;
             position: fixed;
             top: 0;
             left: 0;
@@ -36,38 +51,35 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .hamburger-menu {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
         }
 
         .hamburger-line {
-            width: 22px;
-            height: 2px;
+            width: 25px;
+            height: 3px;
             background-color: white;
             border-radius: 2px;
             transition: 0.3s;
         }
 
         .calories-display {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
             padding: 6px 12px;
-            border-radius: 20px;
+            border-radius: 16px;
             font-weight: bold;
             font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 50%;
         }
 
         .sidebar {
@@ -75,13 +87,14 @@
             top: 0;
             left: -80vw;
             width: 80vw;
-            max-width: 250px;
+            max-width: 280px;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
             transition: left 0.3s ease;
             z-index: 1001;
             padding-top: 60px;
+            box-sizing: border-box;
         }
 
         .sidebar.open {
@@ -89,15 +102,14 @@
         }
 
         .sidebar-item {
-            padding: 15px;
+            padding: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: background 0.3s ease;
             color: white;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 10px;
         }
 
         .sidebar-item:hover, .sidebar-item.active {
@@ -105,19 +117,23 @@
         }
 
         .main-content {
-            margin-top: 70px;
-            padding: 10px;
-            width: 100%;
+            margin-top: 55px;
+            padding: 0;
+            width: 100vw;
+            max-width: 100vw;
+            margin-left: 0;
+            margin-right: 0;
             box-sizing: border-box;
         }
 
         .greeting {
             text-align: center;
             margin-bottom: 20px;
+            padding: 0 16px;
         }
 
         .greeting h1 {
-            font-size: 28px;
+            font-size: 24px;
             font-style: italic;
             margin-bottom: 8px;
             background: linear-gradient(45deg, #fff, #f0f0f0);
@@ -134,33 +150,35 @@
         .quote-section, .current-weight-display, .meal-form, .todays-meals-section {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0;
+            padding: 16px;
+            margin: 0 0 2px 0;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .current-weight-display {
             text-align: center;
+            margin-bottom: 20px;
         }
 
         .current-weight-display h3 {
-            margin-bottom: 6px;
-            font-size: 13px;
+            margin-bottom: 8px;
+            font-size: 14px;
             opacity: 0.8;
         }
 
         .current-weight-value {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             color: #fff;
         }
 
         .quote-header {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             color: white;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             text-align: left;
         }
 
@@ -168,15 +186,15 @@
             font-style: italic;
             text-align: center;
             color: white;
-            font-size: 15px;
+            font-size: 16px;
             line-height: 1.4;
         }
 
         .section-header {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             color: white;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .meals-list {
@@ -185,13 +203,13 @@
 
         .meal-item {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 6px;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 3px solid rgba(255, 255, 255, 0.3);
+            border-left: 4px solid rgba(255, 255, 255, 0.3);
         }
 
         .meal-details {
@@ -200,27 +218,27 @@
 
         .meal-time {
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             opacity: 0.8;
         }
 
         .meal-type {
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .meal-description {
-            font-size: 13px;
+            font-size: 14px;
             opacity: 0.9;
         }
 
         .meal-calories {
             background: rgba(102, 126, 234, 0.3);
-            padding: 3px 6px;
-            border-radius: 15px;
-            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: bold;
-            min-width: 50px;
+            min-width: 60px;
             text-align: center;
         }
 
@@ -228,11 +246,11 @@
             text-align: center;
             opacity: 0.7;
             font-style: italic;
-            padding: 15px;
+            padding: 20px;
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
 
         .form-group label {
@@ -240,17 +258,21 @@
             margin-bottom: 6px;
             font-weight: bold;
             color: white;
+            font-size: 14px;
         }
 
         .form-group select, .form-group input[type="text"], .form-group input[type="number"] {
             width: 100%;
-            padding: 10px;
+            padding: 14px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
-            font-size: 14px;
+            font-size: 16px;
             border: 2px solid rgba(255, 255, 255, 0.1);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .form-group select option {
@@ -271,11 +293,11 @@
         .emoji-rating {
             display: flex;
             justify-content: space-around;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .emoji-rating span {
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             opacity: 0.5;
             transition: opacity 0.3s ease, transform 0.3s ease;
@@ -289,15 +311,19 @@
         .btn-primary {
             background: linear-gradient(45deg, #667eea, #764ba2);
             border: none;
-            padding: 12px 25px;
-            border-radius: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
             color: white;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            font-size: 14px;
-            transition: transform 0.3s ease;
+            font-size: 16px;
+            transition: transform 0.2s ease;
             position: relative;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-primary:hover {
@@ -328,45 +354,52 @@
 
         .chart-container {
             position: relative;
-            width: 100%;
-            height: auto;
-            min-height: 180px;
+            width: 100vw;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             padding: 15px;
+            margin: 0;
+            border-radius: 0;
             box-sizing: border-box;
         }
 
         #weightChart {
-            width: 100%;
+            width: 100% !important;
+            height: 100% !important;
             max-width: 100%;
-            height: auto;
         }
 
         .weight-input-btn {
             background: linear-gradient(45deg, #667eea, #764ba2);
             border: none;
-            padding: 12px 25px;
-            border-radius: 20px;
+            padding: 16px 24px;
+            border-radius: 0;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            width: 100%;
-            font-size: 14px;
-            margin-bottom: 15px;
+            width: 100vw;
+            font-size: 16px;
+            margin: 0;
+            box-sizing: border-box;
         }
 
         .weight-history {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 15px;
-            max-height: 250px;
+            border-radius: 0;
+            padding: 16px;
+            max-height: 300px;
             overflow-y: auto;
+            width: 100vw;
+            margin: 0;
+            box-sizing: border-box;
         }
 
         .weight-entry {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -376,29 +409,28 @@
             z-index: 1002;
             left: 0;
             top: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
         }
 
         .modal-content {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 350px;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
             text-align: center;
-            box-sizing: border-box;
         }
 
         .close {
             color: white;
             float: right;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: -15px;
+            margin-top: -20px;
         }
 
         .overlay {
@@ -406,8 +438,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
@@ -416,79 +448,245 @@
             display: block;
         }
 
-        .error-message, .success-message {
+        .error-message {
             background: rgba(255, 0, 0, 0.2);
             border: 1px solid rgba(255, 0, 0, 0.5);
             color: white;
-            padding: 8px;
-            border-radius: 8px;
-            margin: 8px 0;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
             display: none;
         }
 
         .success-message {
             background: rgba(0, 255, 0, 0.2);
             border: 1px solid rgba(0, 255, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
         }
 
-        @media (max-width: 600px) {
+        .connection-status {
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .connection-status.online {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            color: white;
+        }
+
+        .connection-status.offline {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            color: white;
+        }
+
+        /* Comprehensive Mobile Responsive Design */
+        @media screen and (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+            
             .main-content {
-                padding: 8px;
+                padding: 0;
+                margin-top: 50px;
+                width: 100vw;
             }
+            
+            .greeting {
+                padding: 12px 16px;
+            }
+            
             .greeting h1 {
-                font-size: 24px;
+                font-size: 20px;
             }
+            
             .greeting h2 {
                 font-size: 14px;
             }
-            .section-header, .quote-header {
-                font-size: 14px;
+            
+            .quote-section, .current-weight-display, .meal-form, .todays-meals-section {
+                padding: 16px;
+                margin: 0;
+                width: 100vw;
             }
-            .form-group input, .form-group select {
-                padding: 8px;
-                font-size: 13px;
+            
+            .header {
+                padding: 8px 12px;
             }
-            .btn-primary, .weight-input-btn {
-                padding: 10px 20px;
-                font-size: 13px;
-            }
-            .chart-container {
-                min-height: 150px;
+            
+            .calories-display {
+                font-size: 12px;
+                padding: 4px 8px;
+                max-width: 50%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
 
-        @media (max-width: 360px) {
+        @media screen and (max-width: 480px) {
+            .main-content {
+                padding: 0;
+                margin-top: 45px;
+                width: 100vw;
+            }
+
+            .quote-section, .current-weight-display, .meal-form, .todays-meals-section {
+                padding: 12px;
+                margin: 0;
+                width: 100vw;
+            }
+
+            .form-group {
+                margin-bottom: 10px;
+            }
+            
+            .form-group input, .form-group select {
+                padding: 12px;
+                font-size: 16px;
+            }
+
+            .btn-primary {
+                min-height: 48px;
+                font-size: 16px;
+                border-radius: 0;
+                margin: 16px 0 0 0;
+                width: 100vw;
+            }
+
+            .modal-content {
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+                padding: 20px;
+            }
+
+            .chart-container {
+                padding: 12px;
+                height: 220px;
+                width: 100vw;
+            }
+            
+            .sidebar {
+                width: 85vw;
+                left: -85vw;
+            }
+        }
+
+        @media screen and (max-width: 375px) {
             .header {
-                padding: 8px 10px;
+                padding: 6px 10px;
             }
+            
             .calories-display {
-                font-size: 12px;
-                padding: 5px 10px;
-                max-width: 40%;
+                font-size: 10px;
+                padding: 3px 6px;
+                max-width: 45%;
             }
+            
             .hamburger-menu {
-                width: 24px;
-                height: 24px;
+                width: 30px;
+                height: 30px;
+                padding: 8px;
             }
+            
             .hamburger-line {
                 width: 18px;
                 height: 2px;
             }
-            .modal-content {
-                margin: 5% auto;
-                padding: 15px;
-                width: 95%;
+            
+            .chart-container {
+                height: 200px;
+                padding: 10px;
             }
+        }
+
+        @media screen and (max-width: 320px) {
+            .main-content {
+                margin-top: 40px;
+            }
+            
+            .header {
+                padding: 4px 8px;
+            }
+            
+            .calories-display {
+                font-size: 9px;
+                padding: 2px 4px;
+                max-width: 40%;
+            }
+            
             .greeting h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
+            
             .greeting h2 {
                 font-size: 12px;
+            }
+            
+            .chart-container {
+                height: 180px;
+                padding: 8px;
+            }
+            
+            .sidebar {
+                width: 90vw;
+                left: -90vw;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .hamburger-menu {
+                padding: 12px;
+                width: 44px;
+                height: 44px;
+            }
+
+            .sidebar-item {
+                padding: 16px 20px;
+                min-height: 56px;
+            }
+
+            .emoji-rating span {
+                font-size: 28px;
+                padding: 12px;
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .meal-item {
+                padding: 16px;
+                margin-bottom: 2px;
+            }
+
+            .weight-input-btn {
+                min-height: 48px;
+                padding: 16px 24px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="connection-status" id="connectionStatus">
+        Connected
+    </div>
+
     <div class="header">
         <button class="hamburger-menu" onclick="toggleSidebar()">
             <div class="hamburger-line"></div>
@@ -503,17 +701,23 @@
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-item active" onclick="showHome()">🏠 Home</div>
-        <div class="sidebar-item" onclick="showWeightTracking()">📊 Weight Tracking</div>
+        <div class="sidebar-item active" onclick="showHome()">
+            🏠 Home
+        </div>
+        <div class="sidebar-item" onclick="showWeightTracking()">
+            📊 Weight Tracking
+        </div>
     </div>
 
     <div class="main-content">
+        <!-- Home Section -->
         <div id="homeSection">
             <div class="greeting">
                 <h1>Hello, Mohammed!</h1>
                 <h2>How have you been eating?</h2>
             </div>
 
+            <!-- Current Weight Display -->
             <div class="current-weight-display">
                 <h3>Current Weight</h3>
                 <div class="current-weight-value" id="currentWeightValue">Loading...</div>
@@ -528,7 +732,8 @@
             <div class="success-message" id="successMessage"></div>
 
             <div class="meal-form">
-                <h3 style="margin-bottom: 15px; text-align: center; color: white;">Log Your Meal</h3>
+                <h3 style="margin-bottom: 20px; text-align: center; color: white;">Log Your Meal</h3>
+                
                 <div class="form-group">
                     <label>Hour of the day:</label>
                     <select id="mealHour">
@@ -599,14 +804,18 @@
                 </button>
             </div>
 
+            <!-- Today's Meals Section -->
             <div class="todays-meals-section">
                 <div class="section-header">What I've eaten today</div>
-                <div id="todayMealsList" class="meals-list">Loading today's meals...</div>
+                <div id="todayMealsList" class="meals-list">
+                    Loading today's meals...
+                </div>
             </div>
         </div>
 
+        <!-- Weight Tracking Section -->
         <div id="weightSection" class="weight-section">
-            <div style="text-align: center; margin-bottom: 25px;">
+            <div style="text-align: center; margin-bottom: 30px;">
                 <h1>Weight Tracking</h1>
             </div>
 
@@ -614,19 +823,24 @@
                 <canvas id="weightChart"></canvas>
             </div>
 
-            <button class="weight-input-btn" onclick="showWeightModal()">Add Today's Weight</button>
+            <button class="weight-input-btn" onclick="showWeightModal()">
+                Add Today's Weight
+            </button>
 
             <div class="weight-history">
-                <h3 style="margin-bottom: 10px;">Weight History</h3>
-                <div id="weightHistoryList">Loading weight history...</div>
+                <h3 style="margin-bottom: 15px;">Weight History</h3>
+                <div id="weightHistoryList">
+                    Loading weight history...
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Weight Input Modal -->
     <div id="weightModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeWeightModal()">&times;</span>
-            <h2 style="margin-bottom: 15px;">Add Your Weight</h2>
+            <h2 style="margin-bottom: 20px;">Add Your Weight</h2>
             <div class="error-message" id="weightErrorMessage"></div>
             <div class="form-group">
                 <input type="number" id="weightInput" placeholder="Enter weight in KG" step="0.1" min="0">
@@ -639,11 +853,15 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysHVSmkPtg9pH0HL2yQKUvV2phvKSziHn_y8ltDmT85oEOQm1v2Jcc64fAN2m4BsdZ/exec'; // Replace with your Apps Script deployment URL
-
+        // REPLACE THESE WITH YOUR SUPABASE CREDENTIALS
+        const SUPABASE_URL = 'https://azttcadavuonflvqihjt.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc';
+        
+        // Global variables
         let selectedFeeling = null;
         let weightChart = null;
 
+        // Inspirational quotes
         const quotes = [
             "The groundwork for all happiness is good health.",
             "Take care of your body. It's the only place you have to live.",
@@ -657,322 +875,36 @@
             "Healthy eating is a form of self-respect."
         ];
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            await loadQuote();
-            await updateCaloriesDisplay();
-            await updateCurrentWeight();
-            await displayTodaysMeals();
-        });
-
-        async function apiCall(action, params = {}) {
+        // Supabase API helper functions
+        async function supabaseRequest(endpoint, options = {}) {
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    redirect: 'follow',
-                    body: JSON.stringify({ action, ...params }),
+                const response = await fetch(`${SUPABASE_URL}/rest/v1${endpoint}`, {
                     headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    }
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation',
+                        ...options.headers
+                    },
+                    ...options
                 });
 
-                const data = await response.json();
-                if (data.status === 'error') {
-                    throw new Error(data.message);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return data.result;
+
+                return await response.json();
             } catch (error) {
-                console.error('API error:', error);
+                console.error('Supabase request failed:', error);
+                showConnectionStatus(false);
                 throw error;
             }
         }
 
-        async function loadQuote() {
-            try {
-                const quote = await apiCall('serverGetQuote');
-                document.getElementById('quoteOfTheDay').textContent = quote;
-            } catch (error) {
-                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-                document.getElementById('quoteOfTheDay').textContent = randomQuote;
-            }
-        }
-
-        function selectFeeling(rating) {
-            selectedFeeling = rating;
-            document.querySelectorAll('#feelingRating span').forEach((span, index) => {
-                if (index + 1 === rating) {
-                    span.classList.add('selected');
-                } else {
-                    span.classList.remove('selected');
-                }
-            });
-        }
-
-        async function logMeal() {
-            const hour = document.getElementById('mealHour').value;
-            const type = document.getElementById('mealType').value;
-            const description = document.getElementById('mealDescription').value;
-            const calories = document.getElementById('calories').value;
-
-            if (!hour || !type || !description) {
-                showError('Please fill in all required fields');
-                return;
-            }
-
-            if (!selectedFeeling) {
-                showError('Please select how you felt');
-                return;
-            }
-
-            setButtonLoading('logMealBtn', true);
-
-            try {
-                await apiCall('serverLogMeal', {
-                    hour: parseInt(hour),
-                    type,
-                    description,
-                    calories: calories ? parseInt(calories) : null,
-                    feeling: selectedFeeling
-                });
-
-                clearMealForm();
-                await displayTodaysMeals();
-                await updateCaloriesDisplay();
-                showSuccess('Meal logged successfully!');
-            } catch (error) {
-                showError('Failed to log meal: ' + error.message);
-            } finally {
-                setButtonLoading('logMealBtn', false);
-            }
-        }
-
-        function clearMealForm() {
-            document.getElementById('mealHour').value = '';
-            document.getElementById('mealType').value = '';
-            document.getElementById('mealDescription').value = '';
-            document.getElementById('calories').value = '';
-            selectedFeeling = null;
-            document.querySelectorAll('#feelingRating span').forEach(span => span.classList.remove('selected'));
-        }
-
-        async function displayTodaysMeals() {
-            try {
-                const meals = await apiCall('serverGetTodayMeals');
-                const mealsList = document.getElementById('todayMealsList');
-
-                if (meals.length === 0) {
-                    mealsList.innerHTML = '<div class="no-meals">No meals logged today</div>';
-                    return;
-                }
-
-                meals.sort((a, b) => a.hour - b.hour);
-                let mealsHtml = '';
-                meals.forEach(meal => {
-                    const feelingEmoji = ['😞', '😕', '😐', '😊', '😍'][meal.feeling - 1];
-                    mealsHtml += `
-                        <div class="meal-item">
-                            <div class="meal-details">
-                                <div class="meal-time">${meal.hour}:00 ${feelingEmoji}</div>
-                                <div class="meal-type">${meal.type}</div>
-                                <div class="meal-description">${meal.description}</div>
-                            </div>
-                            <div class="meal-calories">${meal.calories || 'N/A'} cal</div>
-                        </div>
-                    `;
-                });
-                mealsList.innerHTML = mealsHtml;
-            } catch (error) {
-                document.getElementById('todayMealsList').innerHTML = '<div class="no-meals">Error loading meals</div>';
-            }
-        }
-
-        async function updateCaloriesDisplay() {
-            try {
-                const calories = await apiCall('serverGetDailyCalories');
-                document.getElementById('dailyCalories').textContent = calories;
-            } catch (error) {
-                document.getElementById('dailyCalories').textContent = '0';
-            }
-        }
-
-        function showWeightModal() {
-            document.getElementById('weightModal').style.display = 'block';
-        }
-
-        function closeWeightModal() {
-            document.getElementById('weightModal').style.display = 'none';
-            document.getElementById('weightInput').value = '';
-            hideError('weightErrorMessage');
-        }
-
-        async function saveWeight() {
-            const weight = parseFloat(document.getElementById('weightInput').value);
-            if (!weight || weight <= 0) {
-                showError('Please enter a valid weight', 'weightErrorMessage');
-                return;
-            }
-
-            setButtonLoading('saveWeightBtn', true);
-
-            try {
-                await apiCall('serverLogWeight', { weight });
-                await updateCurrentWeight();
-                await displayWeightHistory();
-                await updateWeightChart();
-                showSuccess('Weight saved successfully!');
-            } catch (error) {
-                showError('Failed to save weight: ' + error.message, 'weightErrorMessage');
-            } finally {
-                setButtonLoading('saveWeightBtn', false);
-                closeWeightModal();
-            }
-        }
-
-        async function updateCurrentWeight() {
-            try {
-                const weight = await apiCall('serverGetCurrentWeight');
-                document.getElementById('currentWeightValue').textContent = `${weight} kg`;
-            } catch (error) {
-                document.getElementById('currentWeightValue').textContent = 'No data';
-            }
-        }
-
-        async function displayWeightHistory() {
-            try {
-                const weights = await apiCall('serverGetWeights');
-                const historyList = document.getElementById('weightHistoryList');
-                if (weights.length === 0) {
-                    historyList.innerHTML = '<div class="no-meals">No weight data available</div>';
-                    return;
-                }
-
-                let historyHtml = '';
-                weights.forEach(weight => {
-                    const date = new Date(weight.timestamp).toLocaleDateString();
-                    historyHtml += `
-                        <div class="weight-entry">
-                            <span>${date}</span>
-                            <span>${weight.weight} kg</span>
-                        </div>
-                    `;
-                });
-                historyList.innerHTML = historyHtml;
-            } catch (error) {
-                historyList.innerHTML = '<div class="no-meals">Error loading weight history</div>';
-            }
-        }
-
-        function initWeightChart() {
-            if (weightChart) {
-                updateWeightChart();
-                return;
-            }
-
-            const ctx = document.getElementById('weightChart').getContext('2d');
-            weightChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Weight (kg)',
-                        data: [],
-                        borderColor: 'rgba(255, 255, 255, 0.8)',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: 'white' }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: 'white' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        },
-                        y: {
-                            ticks: { color: 'white' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function updateWeightChart() {
-            if (!weightChart) return;
-            try {
-                const weights = await apiCall('serverGetWeights');
-                const sortedWeights = weights.sort((a, b) => a.timestamp - b.timestamp);
-                const labels = sortedWeights.map(w => {
-                    const date = new Date(w.timestamp);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                });
-                const data = sortedWeights.map(w => w.weight);
-                weightChart.data.labels = labels;
-                weightChart.data.datasets[0].data = data;
-                weightChart.update();
-            } catch (error) {
-                console.error('Error updating chart:', error);
-            }
-        }
-
-        function showError(message, elementId = 'errorMessage') {
-            const errorElement = document.getElementById(elementId);
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => hideError(elementId), 5000);
-        }
-
-        function hideError(elementId = 'errorMessage') {
-            const errorElement = document.getElementById(elementId);
-            errorElement.style.display = 'none';
-        }
-
-        function showSuccess(message, elementId = 'successMessage') {
-            const successElement = document.getElementById(elementId);
-            successElement.textContent = message;
-            successElement.style.display = 'block';
-            setTimeout(() => successElement.style.display = 'none', 3000);
-        }
-
-        function setButtonLoading(buttonId, isLoading) {
-            const button = document.getElementById(buttonId);
-            const btnText = button.querySelector('.btn-text');
-            const loading = button.querySelector('.loading');
-            if (isLoading) {
-                button.disabled = true;
-                btnText.style.opacity = '0';
-                loading.style.display = 'block';
-            } else {
-                button.disabled = false;
-                btnText.style.opacity = '1';
-                loading.style.display = 'none';
-            }
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('weightModal');
-            if (event.target === modal) {
-                closeWeightModal();
-            }
-        };
-
-        function setCurrentHour() {
-            const now = new Date();
-            const currentHour = now.getHours();
-            const hourSelect = document.getElementById('mealHour');
-            if (!hourSelect.value) {
-                hourSelect.value = currentHour.toString();
-            }
-        }
-
-        document.getElementById('mealHour').addEventListener('focus', setCurrentHour);
-    </script>
-</body>
-</html>
+        // Connection status
+        function showConnectionStatus(isOnline) {
+            const status = document.getElementById('connectionStatus');
+            if (isOnline) {
+                status.className = 'connection-status online';
+                status.textContent = 'Connected';
+                status.style.display = 'block';
