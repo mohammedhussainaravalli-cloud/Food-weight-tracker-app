@@ -493,199 +493,66 @@
 
         /* Comprehensive Mobile Responsive Design */
         @media screen and (max-width: 768px) {
-            body {
-                overflow-x: hidden;
-            }
-            
-            .main-content {
-                padding: 0;
-                margin-top: 50px;
-                width: 100vw;
-            }
-            
-            .greeting {
-                padding: 12px 16px;
-            }
-            
-            .greeting h1 {
-                font-size: 20px;
-            }
-            
-            .greeting h2 {
-                font-size: 14px;
-            }
-            
+            body { overflow-x: hidden; }
+            .main-content { padding: 0; margin-top: 50px; width: 100vw; }
+            .greeting { padding: 12px 16px; }
+            .greeting h1 { font-size: 20px; }
+            .greeting h2 { font-size: 14px; }
             .quote-section, .current-weight-display, .meal-form, .todays-meals-section {
-                padding: 16px;
-                margin: 0;
-                width: 100vw;
+                padding: 16px; margin: 0; width: 100vw;
             }
-            
-            .header {
-                padding: 8px 12px;
-            }
-            
+            .header { padding: 8px 12px; }
             .calories-display {
-                font-size: 12px;
-                padding: 4px 8px;
-                max-width: 50%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                font-size: 12px; padding: 4px 8px; max-width: 50%;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
             }
         }
 
         @media screen and (max-width: 480px) {
-            .main-content {
-                padding: 0;
-                margin-top: 45px;
-                width: 100vw;
-            }
-
+            .main-content { padding: 0; margin-top: 45px; width: 100vw; }
             .quote-section, .current-weight-display, .meal-form, .todays-meals-section {
-                padding: 12px;
-                margin: 0;
-                width: 100vw;
+                padding: 12px; margin: 0; width: 100vw;
             }
-
-            .form-group {
-                margin-bottom: 10px;
-            }
-            
-            .form-group input, .form-group select {
-                padding: 12px;
-                font-size: 16px;
-            }
-
-            .btn-primary {
-                min-height: 48px;
-                font-size: 16px;
-                border-radius: 0;
-                margin: 16px 0 0 0;
-                width: 100vw;
-            }
-
-            .modal-content {
-                width: 100vw;
-                height: 100vh;
-                margin: 0;
-                border-radius: 0;
-                padding: 20px;
-            }
-
-            .chart-container {
-                padding: 12px;
-                height: 220px;
-                width: 100vw;
-            }
-            
-            .sidebar {
-                width: 85vw;
-                left: -85vw;
-            }
+            .form-group { margin-bottom: 10px; }
+            .form-group input, .form-group select { padding: 12px; font-size: 16px; }
+            .btn-primary { min-height: 48px; font-size: 16px; border-radius: 0; margin: 16px 0 0 0; width: 100vw; }
+            .modal-content { width: 100vw; height: 100vh; margin: 0; border-radius: 0; padding: 20px; }
+            .chart-container { padding: 12px; height: 220px; width: 100vw; }
+            .sidebar { width: 85vw; left: -85vw; }
         }
 
         @media screen and (max-width: 375px) {
-            .header {
-                padding: 6px 10px;
-            }
-            
-            .calories-display {
-                font-size: 10px;
-                padding: 3px 6px;
-                max-width: 45%;
-            }
-            
-            .hamburger-menu {
-                width: 30px;
-                height: 30px;
-                padding: 8px;
-            }
-            
-            .hamburger-line {
-                width: 18px;
-                height: 2px;
-            }
-            
-            .chart-container {
-                height: 200px;
-                padding: 10px;
-            }
+            .header { padding: 6px 10px; }
+            .calories-display { font-size: 10px; padding: 3px 6px; max-width: 45%; }
+            .hamburger-menu { width: 30px; height: 30px; padding: 8px; }
+            .hamburger-line { width: 18px; height: 2px; }
+            .chart-container { height: 200px; padding: 10px; }
         }
 
         @media screen and (max-width: 320px) {
-            .main-content {
-                margin-top: 40px;
-            }
-            
-            .header {
-                padding: 4px 8px;
-            }
-            
-            .calories-display {
-                font-size: 9px;
-                padding: 2px 4px;
-                max-width: 40%;
-            }
-            
-            .greeting h1 {
-                font-size: 18px;
-            }
-            
-            .greeting h2 {
-                font-size: 12px;
-            }
-            
-            .chart-container {
-                height: 180px;
-                padding: 8px;
-            }
-            
-            .sidebar {
-                width: 90vw;
-                left: -90vw;
-            }
+            .main-content { margin-top: 40px; }
+            .header { padding: 4px 8px; }
+            .calories-display { font-size: 9px; padding: 2px 4px; max-width: 40%; }
+            .greeting h1 { font-size: 18px; }
+            .greeting h2 { font-size: 12px; }
+            .chart-container { height: 180px; padding: 8px; }
+            .sidebar { width: 90vw; left: -90vw; }
         }
 
-        /* Touch device optimizations */
         @media (hover: none) and (pointer: coarse) {
-            .hamburger-menu {
-                padding: 12px;
-                width: 44px;
-                height: 44px;
-            }
-
-            .sidebar-item {
-                padding: 16px 20px;
-                min-height: 56px;
-            }
-
+            .hamburger-menu { padding: 12px; width: 44px; height: 44px; }
+            .sidebar-item { padding: 16px 20px; min-height: 56px; }
             .emoji-rating span {
-                font-size: 28px;
-                padding: 12px;
-                min-width: 44px;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                font-size: 28px; padding: 12px; min-width: 44px; min-height: 44px;
+                display: flex; align-items: center; justify-content: center;
             }
-
-            .meal-item {
-                padding: 16px;
-                margin-bottom: 2px;
-            }
-
-            .weight-input-btn {
-                min-height: 48px;
-                padding: 16px 24px;
-            }
+            .meal-item { padding: 16px; margin-bottom: 2px; }
+            .weight-input-btn { min-height: 48px; padding: 16px 24px; }
         }
     </style>
 </head>
 <body>
-    <div class="connection-status" id="connectionStatus">
-        Connected
-    </div>
+    <div class="connection-status" id="connectionStatus">Connected</div>
 
     <div class="header">
         <button class="hamburger-menu" onclick="toggleSidebar()">
@@ -701,23 +568,17 @@
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-item active" onclick="showHome()">
-            🏠 Home
-        </div>
-        <div class="sidebar-item" onclick="showWeightTracking()">
-            📊 Weight Tracking
-        </div>
+        <div class="sidebar-item active" onclick="showHome()">🏠 Home</div>
+        <div class="sidebar-item" onclick="showWeightTracking()">📊 Weight Tracking</div>
     </div>
 
     <div class="main-content">
-        <!-- Home Section -->
         <div id="homeSection">
             <div class="greeting">
                 <h1>Hello, Mohammed!</h1>
                 <h2>How have you been eating?</h2>
             </div>
 
-            <!-- Current Weight Display -->
             <div class="current-weight-display">
                 <h3>Current Weight</h3>
                 <div class="current-weight-value" id="currentWeightValue">Loading...</div>
@@ -738,30 +599,14 @@
                     <label>Hour of the day:</label>
                     <select id="mealHour">
                         <option value="">Select hour</option>
-                        <option value="0">0:00</option>
-                        <option value="1">1:00</option>
-                        <option value="2">2:00</option>
-                        <option value="3">3:00</option>
-                        <option value="4">4:00</option>
-                        <option value="5">5:00</option>
-                        <option value="6">6:00</option>
-                        <option value="7">7:00</option>
-                        <option value="8">8:00</option>
-                        <option value="9">9:00</option>
-                        <option value="10">10:00</option>
-                        <option value="11">11:00</option>
-                        <option value="12">12:00</option>
-                        <option value="13">13:00</option>
-                        <option value="14">14:00</option>
-                        <option value="15">15:00</option>
-                        <option value="16">16:00</option>
-                        <option value="17">17:00</option>
-                        <option value="18">18:00</option>
-                        <option value="19">19:00</option>
-                        <option value="20">20:00</option>
-                        <option value="21">21:00</option>
-                        <option value="22">22:00</option>
-                        <option value="23">23:00</option>
+                        <option value="0">0:00</option><option value="1">1:00</option><option value="2">2:00</option>
+                        <option value="3">3:00</option><option value="4">4:00</option><option value="5">5:00</option>
+                        <option value="6">6:00</option><option value="7">7:00</option><option value="8">8:00</option>
+                        <option value="9">9:00</option><option value="10">10:00</option><option value="11">11:00</option>
+                        <option value="12">12:00</option><option value="13">13:00</option><option value="14">14:00</option>
+                        <option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option>
+                        <option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option>
+                        <option value="21">21:00</option><option value="22">22:00</option><option value="23">23:00</option>
                     </select>
                 </div>
 
@@ -804,16 +649,12 @@
                 </button>
             </div>
 
-            <!-- Today's Meals Section -->
             <div class="todays-meals-section">
                 <div class="section-header">What I've eaten today</div>
-                <div id="todayMealsList" class="meals-list">
-                    Loading today's meals...
-                </div>
+                <div id="todayMealsList" class="meals-list">Loading today's meals...</div>
             </div>
         </div>
 
-        <!-- Weight Tracking Section -->
         <div id="weightSection" class="weight-section">
             <div style="text-align: center; margin-bottom: 30px;">
                 <h1>Weight Tracking</h1>
@@ -823,20 +664,15 @@
                 <canvas id="weightChart"></canvas>
             </div>
 
-            <button class="weight-input-btn" onclick="showWeightModal()">
-                Add Today's Weight
-            </button>
+            <button class="weight-input-btn" onclick="showWeightModal()">Add Today's Weight</button>
 
             <div class="weight-history">
                 <h3 style="margin-bottom: 15px;">Weight History</h3>
-                <div id="weightHistoryList">
-                    Loading weight history...
-                </div>
+                <div id="weightHistoryList">Loading weight history...</div>
             </div>
         </div>
     </div>
 
-    <!-- Weight Input Modal -->
     <div id="weightModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeWeightModal()">&times;</span>
@@ -853,15 +689,16 @@
     </div>
 
     <script>
-        // REPLACE THESE WITH YOUR SUPABASE CREDENTIALS
-        const SUPABASE_URL = ' https://azttcadavuonflvqihjt.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc';
+        // SUPABASE CONFIGURATION - REPLACE WITH YOUR CREDENTIALS
+        const SUPABASE_URL = 'https://azttcadavuonflvqihjt.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dHRjYWRhdnVvbmZsdnFpaGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NTUwMDUsImV4cCI6MjA3NDUzMTAwNX0.4WQDtvkF3xmrNlQ33W495EYKGmz7k1SqmUopUgfHJbc
+';
         
         // Global variables
         let selectedFeeling = null;
         let weightChart = null;
 
-        // Inspirational quotes
+        // Quotes array
         const quotes = [
             "The groundwork for all happiness is good health.",
             "Take care of your body. It's the only place you have to live.",
@@ -875,7 +712,7 @@
             "Healthy eating is a form of self-respect."
         ];
 
-        // Supabase API helper functions
+        // SUPABASE API FUNCTIONS
         async function supabaseRequest(endpoint, options = {}) {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1${endpoint}`, {
@@ -901,10 +738,128 @@
             }
         }
 
-        // Connection status
-        function showConnectionStatus(isOnline) {
-            const status = document.getElementById('connectionStatus');
-            if (isOnline) {
-                status.className = 'connection-status online';
-                status.textContent = 'Connected';
-                status.style.display = 'block';
+        // UI FUNCTIONS (GLOBAL SCOPE)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        function showHome() {
+            document.getElementById('homeSection').style.display = 'block';
+            document.getElementById('weightSection').style.display = 'none';
+            
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item')[0].classList.add('active');
+            closeSidebar();
+        }
+
+        function showWeightTracking() {
+            document.getElementById('homeSection').style.display = 'none';
+            document.getElementById('weightSection').style.display = 'block';
+            
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item')[1].classList.add('active');
+            
+            initWeightChart();
+            displayWeightHistory();
+            closeSidebar();
+        }
+
+        function selectFeeling(rating) {
+            selectedFeeling = rating;
+            
+            document.querySelectorAll('#feelingRating span').forEach((span, index) => {
+                if (index + 1 === rating) {
+                    span.classList.add('selected');
+                } else {
+                    span.classList.remove('selected');
+                }
+            });
+        }
+
+        function showWeightModal() {
+            document.getElementById('weightModal').style.display = 'block';
+        }
+
+        function closeWeightModal() {
+            document.getElementById('weightModal').style.display = 'none';
+            document.getElementById('weightInput').value = '';
+            hideError('weightErrorMessage');
+        }
+
+        // MEAL FUNCTIONS
+        async function logMeal() {
+            const hour = document.getElementById('mealHour').value;
+            const type = document.getElementById('mealType').value;
+            const description = document.getElementById('mealDescription').value;
+            const calories = document.getElementById('calories').value;
+
+            if (!hour || !type || !description) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            if (!selectedFeeling) {
+                showError('Please select how you felt');
+                return;
+            }
+
+            setButtonLoading('logMealBtn', true);
+
+            try {
+                const meal = {
+                    date: new Date().toISOString().split('T')[0],
+                    hour: parseInt(hour),
+                    meal_type: type,
+                    description: description,
+                    calories: calories ? parseInt(calories) : null,
+                    feeling: selectedFeeling
+                };
+
+                await supabaseRequest('/meals', {
+                    method: 'POST',
+                    body: JSON.stringify(meal)
+                });
+
+                await displayTodaysMeals();
+                await updateCaloriesDisplay();
+                clearMealForm();
+                showSuccess('Meal logged successfully!');
+                showConnectionStatus(true);
+                
+            } catch (error) {
+                console.error('Error logging meal:', error);
+                showError('Failed to log meal. Please try again.');
+                showConnectionStatus(false);
+            } finally {
+                setButtonLoading('logMealBtn', false);
+            }
+        }
+
+        function clearMealForm() {
+            document.getElementById('mealHour').value = '';
+            document.getElementById('mealType').value = '';
+            document.getElementById('mealDescription').value = '';
+            document.getElementById('calories').value = '';
+            selectedFeeling = null;
+            
+            document.querySelectorAll('#feelingRating span').forEach(span => {
+                span.classList.remove('selected');
+            });
+        }
+
+        async function displayTodaysMeals() {
+            const mealsList = document.getElementById('todayMealsList');
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const todayMeals = await supabaseRequest(`/meals?date=eq.${today}&order=hour.asc`);
