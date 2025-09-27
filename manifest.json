@@ -1,11 +1,11 @@
 {
   "name": "MH's Weight Loss App",
-  "short_name": "Weight Loss",
+  "short_name": "MH's Food/Weight Tracker",
   "description": "Track your meals and weight with MH's Weight Loss App",
   "start_url": "/Food-weight-tracker-app/index.html",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#667eea",
+  "background_color": "#42c4f0",
+  "theme_color": "#42c4f0",
   "icons": [
     {
       "src": "/Food-weight-tracker-app/icons:/icon-192x192.png",
